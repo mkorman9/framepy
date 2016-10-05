@@ -1,6 +1,7 @@
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
+import cherrypy
 
 
 Table = sqlalchemy.ext.declarative.declarative_base()
