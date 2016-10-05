@@ -57,11 +57,11 @@ class BaseListener(object):
 def send_message(context, routing_key, message, durable=True, exchange=''):
     context._output_channel.queue_declare(queue=routing_key, durable=durable)
     context._output_channel.basic_publish(exchange=exchange,
-                                         routing_key=routing_key,
-                                         body=message,
-                                         properties=pika.BasicProperties(
-                                             delivery_mode=2,
-                                         ))
+                                          routing_key=routing_key,
+                                          body=message,
+                                          properties=pika.BasicProperties(
+                                              delivery_mode=2,
+                                          ))
 
 
 def _register_listener(context, routing_key, callback):

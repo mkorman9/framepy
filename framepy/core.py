@@ -6,7 +6,6 @@ import beans
 import cherrypy
 
 
-
 DEFAULT_HOST = '0.0.0.0'
 DEFAULT_PORT = 8080
 DEFAULT_APPLICATION_LOG = 'log/application.log'
