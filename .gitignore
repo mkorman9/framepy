@@ -4,3 +4,4 @@
 .idea/
 framepy.egg-info/
 dist/
+build/

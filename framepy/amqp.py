@@ -30,10 +30,10 @@ class Module(object):
         broker_host, broker_port = parse_address()
 
         credentials = pika.PlainCredentials(broker_username, broker_password)
-        return pika.BlockingConnection(pika.ConnectionParameters(broker_host, broker_port, '/', credentials))
+        return pika.ConnectionParameters(broker_host, broker_port, '/', credentials)
 
     def register_custom_beans(self, broker_engine, args):
-        return {'_output_channel': broker_engine.channel()} if broker_engine is not None else {}
+        return {}
 
     def after_setup(self, context, args):
         listeners_mappings = args.get('listeners_mappings', [])
@@ -54,17 +54,24 @@ class BaseListener(object):
         pass
 
 
+def get_connection(context):
+    return pika.BlockingConnection(context.amqp_engine)
+
+
 def send_message(context, routing_key, message, durable=True, exchange=''):
-    context._output_channel.queue_declare(queue=routing_key, durable=durable)
-    context._output_channel.basic_publish(exchange=exchange,
-                                          routing_key=routing_key,
-                                          body=message,
-                                          properties=pika.BasicProperties(
-                                              delivery_mode=2,
-                                          ))
+    sending_connection = get_connection(context).channel()
+    sending_connection.queue_declare(queue=routing_key, durable=durable)
+    sending_connection.basic_publish(exchange=exchange,
+                                     routing_key=routing_key,
+                                     body=message,
+                                     properties=pika.BasicProperties(
+                                         delivery_mode=2,
+                                     ))
 
 
 def _register_listener(context, routing_key, callback):
+    thread_local_channel = get_connection(context).channel()
+
     def receive_action(channel, method, properties, body):
         try:
             callback(channel, method, properties, body)
@@ -73,11 +80,10 @@ def _register_listener(context, routing_key, callback):
             cherrypy.log.error('Error receiving message from queue {0}, exception: {1}'.format(routing_key, e))
 
     def listener_thread():
-        channel = context.amqp_engine.channel()
-        channel.queue_declare(queue=routing_key, durable=True)
-        channel.basic_qos(prefetch_count=1)
-        channel.basic_consume(receive_action, routing_key)
-        channel.start_consuming()
+        thread_local_channel.queue_declare(queue=routing_key, durable=True)
+        thread_local_channel.basic_qos(prefetch_count=1)
+        thread_local_channel.basic_consume(receive_action, routing_key)
+        thread_local_channel.start_consuming()
 
     thread = threading.Thread(target=listener_thread)
     thread.daemon = True
