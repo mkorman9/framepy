@@ -7,9 +7,6 @@ class DbTest(unittest.TestCase):
     def test_transation_successful(self):
         # given
         session = mock.MagicMock()
-        session.commit = mock.MagicMock()
-        session.rollback = mock.MagicMock()
-        session.close = mock.MagicMock()
 
         context = mock.MagicMock()
         context._session_maker = mock.MagicMock(return_value=session)
@@ -26,9 +23,6 @@ class DbTest(unittest.TestCase):
     def test_transation_failing(self):
         # given
         session = mock.MagicMock()
-        session.commit = mock.MagicMock()
-        session.rollback = mock.MagicMock()
-        session.close = mock.MagicMock()
 
         context = mock.MagicMock()
         context._session_maker = mock.MagicMock(return_value=session)
