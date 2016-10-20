@@ -12,3 +12,6 @@ class Module(object):
             setattr(bean.bean, 'context', context)
             if hasattr(bean.bean, 'initialize'):
                 bean.bean.initialize()
+
+    def shutdown(self, context):
+        pass

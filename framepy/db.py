@@ -30,6 +30,9 @@ class Module(object):
     def after_setup(self, context, args):
         pass
 
+    def shutdown(self, context):
+        pass
+
 
 @contextlib.contextmanager
 def transaction(context):

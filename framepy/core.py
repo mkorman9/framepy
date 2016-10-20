@@ -80,6 +80,11 @@ def _after_setup(context, modules, kwargs):
         module.after_setup(context, kwargs)
 
 
+def _shutdown_modules(context, modules):
+    for module in modules:
+        module.shutdown(context)
+
+
 def start_application(properties,
                       controllers_mappings,
                       modules=(),
@@ -96,3 +101,5 @@ def start_application(properties,
 
     cherrypy.engine.start()
     cherrypy.engine.block()
+
+    _shutdown_modules(contex, modules)

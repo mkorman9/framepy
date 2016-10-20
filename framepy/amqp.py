@@ -33,7 +33,7 @@ class Module(object):
         return pika.ConnectionParameters(broker_host, broker_port, '/', credentials)
 
     def register_custom_beans(self, broker_engine, args):
-        return {}
+        return {'_amqp_connection_cache':{}}
 
     def after_setup(self, context, args):
         listeners_mappings = args.get('listeners_mappings', [])
@@ -41,6 +41,10 @@ class Module(object):
             m.bean.context = context
             m.bean.initialize()
             _register_listener(context, m.path, m.bean.on_message)
+
+    def shutdown(self, context):
+        for connection in context._amqp_connection_cache.values():
+            connection.close()
 
 
 class BaseListener(object):
@@ -55,7 +59,12 @@ class BaseListener(object):
 
 
 def get_connection(context):
-    return pika.BlockingConnection(context.amqp_engine)
+    if threading.currentThread().name in context._amqp_connection_cache:
+        return context._amqp_connection_cache[threading.currentThread().name]
+    else:
+        new_connection = pika.BlockingConnection(context.amqp_engine)
+        context._amqp_connection_cache[threading.currentThread().name] = new_connection
+        return new_connection
 
 
 def send_message(context, routing_key, message, durable=True, exchange=''):
