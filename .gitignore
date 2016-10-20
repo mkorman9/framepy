@@ -5,3 +5,4 @@
 framepy.egg-info/
 dist/
 build/
+release.sh
