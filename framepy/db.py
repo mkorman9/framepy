@@ -2,6 +2,7 @@ import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 import cherrypy
+import contextlib
 
 
 Table = sqlalchemy.ext.declarative.declarative_base()
@@ -30,29 +31,20 @@ class Module(object):
         pass
 
 
-def transactional(context):
-    def transactional_pack(func):
-        def modify_kwargs(kwargs, session):
-            new_kwargs = kwargs.copy()
-            new_kwargs['session'] = session
-            return new_kwargs
-
-        def run_in_transaction(*args, **kwargs):
-            session, result = None, None
-            try:
-                session = context._session_maker()
-                result = func(*args, **modify_kwargs(kwargs, session))
-                session.commit()
-            except Exception as e:
-                if session is not None:
-                    session.rollback()
-                raise e
-            finally:
-                if session is not None:
-                    session.close()
-            return result
-        return run_in_transaction
-    return transactional_pack
+@contextlib.contextmanager
+def transaction(context):
+    session = None
+    try:
+        session = context._session_maker()
+        yield session
+        session.commit()
+    except Exception as e:
+        if session is not None:
+            session.rollback()
+        raise e
+    finally:
+        if session is not None:
+            session.close()
 
 
 class DataAccessException(Exception):

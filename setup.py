@@ -12,5 +12,5 @@ setup(
     keywords=['web', 'framework', 'amqp', 'di', 'db'],
     classifiers=[],
     install_requires=['CherryPy', 'PyMySQL', 'SQLAlchemy', 'pika'],
-    tests_require=['unittest2']
+    tests_require=['unittest2', 'mock']
 )
