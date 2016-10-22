@@ -102,4 +102,4 @@ def start_application(properties,
     cherrypy.engine.start()
     cherrypy.engine.block()
 
-    _shutdown_modules(contex, modules)
+    _shutdown_modules(context, modules)
