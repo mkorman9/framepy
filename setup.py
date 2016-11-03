@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='framepy',
     packages=['framepy'],
-    version='0.18',
+    version='0.19',
     description='Very simple web application framework with support for AMQP and DI',
     author='Michal Korman',
     author_email='m.korman94@gmail.com',
