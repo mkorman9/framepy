@@ -12,9 +12,9 @@ class Module(object):
     name = 'db'
 
     def setup_engine(self, loaded_properties, args):
-        database_url = loaded_properties['database_url']
-        database_username = loaded_properties['database_username']
-        database_password = loaded_properties['database_password']
+        database_url = loaded_properties.get('database_url')
+        database_username = loaded_properties.get('database_username')
+        database_password = loaded_properties.get('database_password')
 
         if database_url is None:
             cherrypy.log.error('No database url found in properties. Skipping ORM engine creation.')

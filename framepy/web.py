@@ -116,7 +116,7 @@ class BaseController(object):
     @cherrypy.expose
     def default(self, *vpath, **params):
         def find_handling_method():
-            return getattr(self, "handle_" + cherrypy.request.method, None)
+            return getattr(self, cherrypy.request.method, None)
 
         def handle_form():
             if cherrypy.request.method in ('POST', 'PUT'):
