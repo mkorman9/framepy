@@ -131,8 +131,8 @@ class BaseController(object):
 
         def dispatch_event(method, form):
             if not method:
-                cherrypy.response.status = 405
-                return ResponseEntity(status='error', error="Method not allowed").tojson()
+                cherrypy.response.status = 404
+                return ResponseEntity(status='error', error="Not found").tojson()
             if form is not None:
                 params['form'] = form
             return method(*vpath, **params).tojson()
