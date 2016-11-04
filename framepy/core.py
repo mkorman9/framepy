@@ -85,10 +85,10 @@ def _shutdown_modules(context, modules):
         module.shutdown(context)
 
 
-def start_application(properties,
-                      controllers_mappings,
-                      modules=(),
-                      **kwargs):
+def init_context(properties,
+                 controllers_mappings,
+                 modules=(),
+                 **kwargs):
     modules = (beans.Module(),) + modules
 
     loaded_properties = _load_properties(properties)
@@ -99,7 +99,9 @@ def start_application(properties,
     _register_controllers(context, controllers_mappings)
     _after_setup(context, modules, kwargs)
 
+    return cherrypy.tree
+
+
+def start_standalone_application():
     cherrypy.engine.start()
     cherrypy.engine.block()
-
-    _shutdown_modules(context, modules)

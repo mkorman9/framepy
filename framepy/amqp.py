@@ -42,10 +42,6 @@ class Module(object):
             m.bean.initialize()
             _register_listener(context, m.path, m.bean.on_message)
 
-    def shutdown(self, context):
-        for connection in context._amqp_connection_cache.values():
-            connection.close()
-
 
 class BaseListener(object):
     def __init__(self):
