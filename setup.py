@@ -8,7 +8,7 @@ setup(
     author='Michal Korman',
     author_email='m.korman94@gmail.com',
     url='https://github.com/mkorman9/framepy',
-    download_url='https://github.com/mkorman9/framepy/tarball/0.18',
+    download_url='https://github.com/mkorman9/framepy/tarball/0.20',
     keywords=['web', 'framework', 'amqp', 'di', 'db'],
     classifiers=[],
     install_requires=['CherryPy', 'PyMySQL', 'SQLAlchemy', 'pika'],
