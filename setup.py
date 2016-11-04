@@ -11,6 +11,5 @@ setup(
     download_url='https://github.com/mkorman9/framepy/tarball/0.21',
     keywords=['web', 'framework', 'amqp', 'di', 'db'],
     classifiers=[],
-    install_requires=['CherryPy', 'PyMySQL', 'SQLAlchemy', 'pika'],
-    tests_require=['unittest2', 'assertpy', 'mock']
+    install_requires=['CherryPy', 'PyMySQL', 'SQLAlchemy', 'pika', 'unittest2', 'assertpy', 'mock']
 )
