@@ -1,6 +1,7 @@
 import unittest
 import mock
 import framepy.db
+from assertpy import assert_that
 
 
 class DbTest(unittest.TestCase):
@@ -29,7 +30,7 @@ class DbTest(unittest.TestCase):
         result = module.setup_engine(db_properties, None)
 
         # then
-        self.assertIsNone(result)
+        assert_that(result).is_none()
         log_error.assert_called_once()
 
     @mock.patch('sqlalchemy.orm.sessionmaker')
@@ -44,7 +45,7 @@ class DbTest(unittest.TestCase):
         result = module.register_custom_beans(db_engine, None)
 
         # then
-        self.assertEqual(result['_session_maker'], sessionmaker_instance)
+        assert_that(result['_session_maker']).is_equal_to(sessionmaker_instance)
 
     @mock.patch('sqlalchemy.orm.sessionmaker')
     def test_should_not_register_sessionmaker_if_empty_db_engine(self, sessionmaker):
@@ -94,4 +95,4 @@ class DbTest(unittest.TestCase):
         session.commit.assert_not_called()
         session.rollback.assert_called_once_with()
         session.close.assert_called_once_with()
-        self.assertTrue(catched_exception)
+        assert_that(catched_exception).is_true()

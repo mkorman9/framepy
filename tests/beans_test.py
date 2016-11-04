@@ -1,6 +1,7 @@
 import unittest
 import framepy.beans
 import framepy.core
+from assertpy import assert_that
 
 
 class BeansTest(unittest.TestCase):
@@ -30,8 +31,8 @@ class BeansTest(unittest.TestCase):
         self.beans.after_setup('some_context', args)
 
         # then
-        self.assertTrue('dummy' in attributes)
-        self.assertEqual('some_context', attributes['dummy'].context)
+        assert_that(attributes).contains('dummy')
+        assert_that('some_context').is_equal_to(attributes['dummy'].context)
 
     def test_bean_should_be_registered_and_initialized(self):
         # given
@@ -48,7 +49,7 @@ class BeansTest(unittest.TestCase):
         self.beans.after_setup('some_context', args)
 
         # then
-        self.assertTrue('dummy' in attributes)
-        self.assertTrue('example_bean' in attributes)
-        self.assertTrue(attributes['example_bean'].initialized)
-        self.assertEqual('some_context', attributes['example_bean'].context)
+        assert_that(attributes).contains('dummy')
+        assert_that(attributes).contains('example_bean')
+        assert_that(attributes['example_bean'].initialized).is_true()
+        assert_that('some_context').is_equal_to(attributes['example_bean'].context)

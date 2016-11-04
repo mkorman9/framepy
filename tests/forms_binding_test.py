@@ -1,5 +1,6 @@
 import unittest
 import framepy.web
+from assertpy import assert_that
 
 
 class FormBindingTest(unittest.TestCase):
@@ -14,8 +15,8 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, EmptyForm)
 
         # then
-        self.assertFalse(binder.has_errors())
-        self.assertIsNotNone(binder.form)
+        assert_that(binder.has_errors()).is_false()
+        assert_that(binder.form).is_not_none()
 
     def test_should_fail_if_missing_required_param(self):
         # given
@@ -28,9 +29,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertTrue(binder.has_errors())
-        self.assertEquals('name', binder.errors[0]['field'])
-        self.assertEquals('MISSING_FIELD', binder.errors[0]['error'])
+        assert_that(binder.has_errors()).is_true()
+        assert_that('name').is_equal_to(binder.errors[0]['field'])
+        assert_that('MISSING_FIELD').is_equal_to(binder.errors[0]['error'])
 
     def test_should_not_fail_if_passed_required_param(self):
         # given
@@ -43,9 +44,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertFalse(binder.has_errors())
-        self.assertIsNotNone(binder.form)
-        self.assertEqual('xyz', binder.form.name)
+        assert_that(binder.has_errors()).is_false()
+        assert_that(binder.form).is_not_none()
+        assert_that(binder.form.name).is_equal_to('xyz')
 
     def test_should_not_fail_if_passed_optional_param(self):
         # given
@@ -58,9 +59,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertFalse(binder.has_errors())
-        self.assertIsNotNone(binder.form)
-        self.assertEqual('xyz', binder.form.name)
+        assert_that(binder.has_errors()).is_false()
+        assert_that(binder.form).is_not_none()
+        assert_that(binder.form.name).is_equal_to('xyz')
 
     def test_should_not_fail_if_missing_optional_param(self):
         # given
@@ -73,8 +74,8 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertFalse(binder.has_errors())
-        self.assertIsNotNone(binder.form)
+        assert_that(binder.has_errors()).is_false()
+        assert_that(binder.form).is_not_none()
 
     def test_should_fail_if_wrong_type(self):
         # given
@@ -87,9 +88,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertTrue(binder.has_errors())
-        self.assertEqual('name', binder.errors[0]['field'])
-        self.assertEqual('BAD_TYPE', binder.errors[0]['error'])
+        assert_that(binder.has_errors()).is_true()
+        assert_that(binder.errors[0]['field']).is_equal_to('name')
+        assert_that(binder.errors[0]['error']).is_equal_to('BAD_TYPE')
 
     def test_should_fail_if_string_too_long(self):
         # given
@@ -102,9 +103,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertTrue(binder.has_errors())
-        self.assertEqual('name', binder.errors[0]['field'])
-        self.assertEqual('MAX_LENGTH', binder.errors[0]['error'])
+        assert_that(binder.has_errors()).is_true()
+        assert_that(binder.errors[0]['field']).is_equal_to('name')
+        assert_that(binder.errors[0]['error']).is_equal_to('MAX_LENGTH')
 
     def test_should_fail_if_int_too_big(self):
         # given
@@ -117,9 +118,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertTrue(binder.has_errors())
-        self.assertEqual('age', binder.errors[0]['field'])
-        self.assertEqual('MAX', binder.errors[0]['error'])
+        assert_that(binder.has_errors()).is_true()
+        assert_that(binder.errors[0]['field']).is_equal_to('age')
+        assert_that(binder.errors[0]['error']).is_equal_to('MAX')
 
     def test_should_fail_if_string_too_short(self):
         # given
@@ -132,9 +133,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertTrue(binder.has_errors())
-        self.assertEqual('name', binder.errors[0]['field'])
-        self.assertEqual('MIN_LENGTH', binder.errors[0]['error'])
+        assert_that(binder.has_errors()).is_true()
+        assert_that(binder.errors[0]['field']).is_equal_to('name')
+        assert_that(binder.errors[0]['error']).is_equal_to('MIN_LENGTH')
 
     def test_should_fail_if_int_too_small(self):
         # given
@@ -147,9 +148,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, SingleParamForm)
 
         # then
-        self.assertTrue(binder.has_errors())
-        self.assertEqual('age', binder.errors[0]['field'])
-        self.assertEqual('MIN', binder.errors[0]['error'])
+        assert_that(binder.has_errors()).is_true()
+        assert_that(binder.errors[0]['field']).is_equal_to('age')
+        assert_that(binder.errors[0]['error']).is_equal_to('MIN')
 
     def test_should_validate_nested_form(self):
         # given
@@ -166,10 +167,10 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, OutterForm)
 
         # then
-        self.assertFalse(binder.has_errors())
-        self.assertIsNotNone(binder.form)
-        self.assertEqual('Michael', binder.form.inner.name)
-        self.assertEqual(20, binder.form.inner.age)
+        assert_that(binder.has_errors()).is_false()
+        assert_that(binder.form).is_not_none()
+        assert_that(binder.form.inner.name).is_equal_to('Michael')
+        assert_that(binder.form.inner.age).is_equal_to(20)
 
     def test_should_fail_in_nested_form(self):
         # given
@@ -186,9 +187,9 @@ class FormBindingTest(unittest.TestCase):
         binder = framepy.web.FormBinder(form_data, OutterForm)
 
         # then
-        self.assertTrue(binder.has_errors())
-        self.assertEqual(2, len(binder.errors))
-        self.assertTrue(binder.errors[0]['field'] == 'name' or binder.errors[1]['field'] == 'name')
-        self.assertTrue(binder.errors[0]['field'] == 'name' or binder.errors[1]['field'] == 'age')
-        self.assertTrue(binder.errors[0]['error'] == 'MIN_LENGTH' or binder.errors[1]['error'] == 'MIN_LENGTH')
-        self.assertTrue(binder.errors[0]['error'] == 'MIN' or binder.errors[1]['error'] == 'MIN')
+        assert_that(binder.has_errors()).is_true()
+        assert_that(len(binder.errors)).is_equal_to(2)
+        assert_that(binder.errors[0]['field'] == 'name' or binder.errors[1]['field'] == 'name').is_true()
+        assert_that(binder.errors[0]['field'] == 'name' or binder.errors[1]['field'] == 'age').is_true()
+        assert_that(binder.errors[0]['error'] == 'MIN_LENGTH' or binder.errors[1]['error'] == 'MIN_LENGTH').is_true()
+        assert_that(binder.errors[0]['error'] == 'MIN' or binder.errors[1]['error'] == 'MIN').is_true()
