@@ -47,5 +47,19 @@ def transaction(context):
             session.close()
 
 
+class GenericRepository(object):
+    def all(self, transaction):
+        return transaction.query(self.__basetable__).all()
+
+    def one(self, transaction, id):
+        return transaction.query(self.__basetable__).filter(self.__basetable__.id == id).one()
+
+    def add(self, transaction, entity):
+        transaction.add(entity)
+
+    def delete(self, transaction, cat):
+        transaction.delete(cat)
+
+
 class DataAccessException(Exception):
     pass
