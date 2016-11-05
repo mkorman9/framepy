@@ -142,7 +142,7 @@ class BaseController(object):
             form = handle_form()
             method = find_handling_method()
             result = dispatch_event(method, form)
-            if result.status == 'error':
+            if result.status == 'error' and cherrypy.response.status != 404:
                 cherrypy.response.status = 400
             return result.tojson()
         except ValueError:
