@@ -57,8 +57,8 @@ class GenericRepository(object):
     def add(self, transaction, entity):
         transaction.add(entity)
 
-    def delete(self, transaction, cat):
-        transaction.delete(cat)
+    def delete(self, transaction, entity):
+        transaction.delete(entity)
 
 
 class DataAccessException(Exception):

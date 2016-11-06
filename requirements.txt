@@ -1,0 +1,7 @@
+CherryPy
+PyMySQL
+SQLAlchemy
+pika
+unittest2
+assertpy
+mock

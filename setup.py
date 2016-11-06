@@ -1,8 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+with open('requirements.txt') as f:
+    requirements = f.readlines()
 
 setup(
     name='framepy',
-    packages=['framepy'],
+    packages=find_packages(),
     version='0.28',
     description='Very simple web application framework with support for AMQP and DI',
     author='Michal Korman',
@@ -11,5 +14,5 @@ setup(
     download_url='https://github.com/mkorman9/framepy/tarball/0.28',
     keywords=['web', 'framework', 'amqp', 'di', 'db'],
     classifiers=[],
-    install_requires=['CherryPy', 'PyMySQL', 'SQLAlchemy', 'pika', 'unittest2', 'assertpy', 'mock']
+    install_requires=[requirement for requirement in requirements if len(requirement) > 0]
 )
