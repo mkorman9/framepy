@@ -127,7 +127,6 @@ def init_context(properties,
 
     loaded_properties = _load_properties(properties)
     loaded_properties = _load_remote_configuration(loaded_properties)
-    print(loaded_properties)
     _update_config(loaded_properties)
     _setup_logging(loaded_properties)
     context = _create_context(loaded_properties, modules, kwargs)
