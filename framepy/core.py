@@ -62,10 +62,10 @@ def _load_remote_configuration(properties):
     remote_config_url = properties.get('remote_config_url')
     app_name = properties.get('app_name')
 
-    if remote_config_url is None:
+    if remote_config_url is None or not remote_config_url:
         cherrypy.log.error('Remote config URL not present. Skipping.')
         return properties
-    if app_name is None:
+    if app_name is None or not app_name:
         cherrypy.log.error('Remote config URL is present but applciation name was not specified!')
         return properties
 

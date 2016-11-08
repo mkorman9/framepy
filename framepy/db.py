@@ -14,7 +14,7 @@ class Module(object):
     def setup_engine(self, loaded_properties, args):
         database_url = loaded_properties.get('database_url')
 
-        if database_url is None:
+        if database_url is None or not database_url:
             cherrypy.log.error('No database url found in properties. Skipping ORM engine creation.')
             return None
 
