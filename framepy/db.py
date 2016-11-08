@@ -13,15 +13,12 @@ class Module(object):
 
     def setup_engine(self, loaded_properties, args):
         database_url = loaded_properties.get('database_url')
-        database_username = loaded_properties.get('database_username')
-        database_password = loaded_properties.get('database_password')
 
         if database_url is None:
             cherrypy.log.error('No database url found in properties. Skipping ORM engine creation.')
             return None
 
-        database_url = database_url.replace('jdbc:mysql://',
-                                            'mysql+pymysql://{0}:{1}@'.format(database_username, database_password))
+        # mysql+pymysql://{username}:{password}@url
         return sqlalchemy.create_engine(database_url)
 
     def register_custom_beans(self, db_engine, args):

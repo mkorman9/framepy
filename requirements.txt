@@ -5,3 +5,4 @@ pika
 unittest2
 assertpy
 mock
+requests
