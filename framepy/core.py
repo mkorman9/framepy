@@ -31,15 +31,16 @@ def _setup_logging(load_properties):
     backupCount = getattr(log, "rot_backupCount", load_properties.get('logs_max_files', DEFAULT_MAX_LOGS))
 
     fname = getattr(log, "rot_error_file", load_properties.get('logs_application_file', DEFAULT_APPLICATION_LOG))
-    h = handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
-    h.setLevel(logging.INFO)
-    h.setFormatter(cherrypy._cplogging.logfmt)
-    log.error_log.addHandler(h)
+    error_log = handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
+    error_log.setLevel(logging.INFO)
+    error_log.setFormatter(cherrypy._cplogging.logfmt)
+    log.error_log.addHandler(error_log)
 
     fname = getattr(log, "rot_access_file", load_properties.get('logs_access_file', DEFAULT_ACCESS_LOG))
     h = handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
     h.setLevel(logging.INFO)
     h.setFormatter(cherrypy._cplogging.logfmt)
+    log.access_log.handlers = []
     log.access_log.addHandler(h)
 
 
@@ -76,7 +77,7 @@ def _load_remote_configuration(properties):
     try:
         config_server_response = requests.get(remote_config_url + app_name + '/default')
         if config_server_response.status_code != 200:
-            cherrypy.log.error('Error loading remote properties! Status code ' + config_server_response.status_code)
+            cherrypy.log.error('Error loading remote properties! Status code ' + str(config_server_response.status_code))
             return properties
 
         sources = [source['source'] for source in config_server_response.json()['propertySources']]
