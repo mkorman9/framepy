@@ -30,10 +30,10 @@ class Module(object):
         _register_instance(remote_config_url, app_name, public_hostname)
         _register_heartbeat_service(remote_config_url, app_name, public_hostname)
 
-        self.eureka_url = remote_config_url
+        return remote_config_url
 
-    def register_custom_beans(self, context, args):
-        return {'_eureka_url': self.eureka_url}
+    def register_custom_beans(self, remote_config_url, args):
+        return {'_eureka_url': remote_config_url}
 
     def after_setup(self, context, args):
         pass
