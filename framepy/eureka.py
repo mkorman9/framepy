@@ -5,38 +5,6 @@ import threading
 import time
 
 
-"""
-requests.get('http://localhost:8761/eureka/apps/', headers={'accept': 'application/json'})
-
-
-requests.get('http://localhost:8761/eureka/apps/MyApp', headers={'accept': 'application/json'})
-
-
-data_center_info = {
-          "@class":"com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
-          "name": "MyOwn"
-        }
-
-instance_data = {
-            'instance': {
-                'hostName': 'localhost',
-                'ipAddr': 'localhost',
-                'app': 'MyApp',
-                'status': 'UP',
-                'port': {
-                     "$":8000,
-                     "@enabled": 'true'
-                 },
-                'dataCenterInfo': data_center_info
-            }
-        }
-
-requests.post('http://localhost:8761/eureka/apps/MyApp', json.dumps(instance_data), headers={'Content-Type': 'application/json'})
-
-
-requests.put('http://localhost:8761/eureka/apps/MyApp/localhost', json.dumps(instance_data), headers={'Content-Type': 'application/json'})
-"""
-
 eureka_url = ''
 
 
