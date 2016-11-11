@@ -5,9 +5,6 @@ import threading
 import time
 
 
-eureka_url = ''
-
-
 class Module(object):
     name = 'eureka'
 
@@ -33,18 +30,17 @@ class Module(object):
         _register_instance(remote_config_url, app_name, public_hostname)
         _register_heartbeat_service(remote_config_url, app_name, public_hostname)
 
-        global eureka_url
-        eureka_url = remote_config_url
+        self.eureka_url = remote_config_url
 
     def register_custom_beans(self, context, args):
-        return {}
+        return {'_eureka_url': self.eureka_url}
 
     def after_setup(self, context, args):
         pass
 
 
-def list_instances(service_name):
-    response = requests.get(eureka_url + '/apps/' + service_name, headers={'accept': 'application/json'})
+def list_instances(context, service_name):
+    response = requests.get(context._eureka_url + '/apps/' + service_name, headers={'accept': 'application/json'})
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception('Cannot retrieve instances of service ' + service_name)
 
