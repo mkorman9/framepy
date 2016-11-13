@@ -1,8 +1,11 @@
 import cherrypy
 import pika
+import pika.exceptions
 import threading
+import time
 
-
+WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
+CONNECTION_RETRIES_COUNT = 3
 DEFAULT_AMQP_PORT = 5672
 
 
@@ -54,12 +57,17 @@ class BaseListener(object):
         pass
 
 
+class ConnectionError(Exception):
+    pass
+
+
 def get_connection(context):
-    if threading.currentThread().name in context._amqp_connection_cache:
-        return context._amqp_connection_cache[threading.currentThread().name]
+    connection_identifier = threading.currentThread().name
+    if connection_identifier in context._amqp_connection_cache:
+        return context._amqp_connection_cache[connection_identifier]
     else:
-        new_connection = pika.BlockingConnection(context.amqp_engine)
-        context._amqp_connection_cache[threading.currentThread().name] = new_connection
+        new_connection = _establish_connection(context)
+        context._amqp_connection_cache[connection_identifier] = new_connection
         return new_connection
 
 
@@ -72,6 +80,25 @@ def send_message(context, routing_key, message, durable=True, exchange=''):
                                      properties=pika.BasicProperties(
                                          delivery_mode=2,
                                      ))
+
+
+def _establish_connection(context):
+    new_connection = None
+    connection_established = False
+    tries_count = CONNECTION_RETRIES_COUNT
+    while not connection_established:
+        if tries_count:
+            try:
+                new_connection = pika.BlockingConnection(context.amqp_engine)
+                connection_established = True
+            except pika.exceptions.ConnectionClosed:
+                time.sleep(WAIT_TIME_AFTER_CONNECTION_FAILURE)
+                tries_count -= 1
+        else:
+            cherrypy.log.error('Cannot establish AMQP connection with {0}:{1}'.format(context.amqp_engine.host,
+                                                                                      context.amqp_engine.port))
+            raise ConnectionError('Cannot establish AMQP connection')
+    return new_connection
 
 
 def _register_listener(context, routing_key, callback):

@@ -31,5 +31,15 @@ class Module(object):
         pass
 
 
+class ConnectionError(Exception):
+    pass
+
+
 def get_connection(context):
-    return redis.Redis(connection_pool=context._redis_pool)
+    connection = redis.Redis(connection_pool=context._redis_pool)
+    try:
+        connection.ping()
+    except redis.exceptions.ConnectionError:
+        cherrypy.log.error('Redis connection pool returned invalid connection!')
+        raise ConnectionError('Cannot connect to Redis')
+    return connection

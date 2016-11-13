@@ -1,6 +1,7 @@
 import json
 import cherrypy
 import core
+import inspect
 
 
 class ResponseEntity(object):
@@ -135,7 +136,12 @@ class BaseController(object):
                 return ResponseEntity(status='error', error="Not found")
             if form is not None:
                 params['form'] = form
-            return method(*vpath, **params)
+            method_args = inspect.getargspec(method)
+            if len(method_args.args) > 1 or method_args.varargs or method_args.keywords:
+                result = method(*vpath, **params)
+            else:
+                result = method()
+            return result
 
         try:
             setup_response_headers()
