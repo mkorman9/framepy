@@ -16,6 +16,8 @@ DEFAULT_MAX_LOG_SIZE = 10
 MB_SIZE = 1000000
 Mapping = collections.namedtuple('Mapping', ['bean', 'path'])
 
+log = logging.getLogger('framepy_logger')
+
 
 class Context(object):
     def __init__(self, entries):
@@ -23,25 +25,29 @@ class Context(object):
 
 
 def _setup_logging(load_properties):
-    log = cherrypy.log
-    log.error_file = ""
-    log.access_file = ""
+    system_log = cherrypy.log
+    system_log.error_file = ""
+    system_log.access_file = ""
 
-    maxBytes = getattr(log, "rot_maxBytes", load_properties.get('logs_max_size', DEFAULT_MAX_LOG_SIZE) * MB_SIZE)
-    backupCount = getattr(log, "rot_backupCount", load_properties.get('logs_max_files', DEFAULT_MAX_LOGS))
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s %(filename)s:%(funcName)s: %(message)s')
 
-    fname = getattr(log, "rot_error_file", load_properties.get('logs_application_file', DEFAULT_APPLICATION_LOG))
-    error_log = handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
-    error_log.setLevel(logging.INFO)
-    error_log.setFormatter(cherrypy._cplogging.logfmt)
-    log.error_log.addHandler(error_log)
+    max_bytes = getattr(system_log, "rot_maxBytes", load_properties.get('logs_max_size', DEFAULT_MAX_LOG_SIZE) * MB_SIZE)
+    backup_count = getattr(system_log, "rot_backupCount", load_properties.get('logs_max_files', DEFAULT_MAX_LOGS))
 
-    fname = getattr(log, "rot_access_file", load_properties.get('logs_access_file', DEFAULT_ACCESS_LOG))
-    h = handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
+    fname = getattr(system_log, "rot_error_file", load_properties.get('logs_application_file', DEFAULT_APPLICATION_LOG))
+    application_log_handler = handlers.RotatingFileHandler(fname, 'a', max_bytes, backup_count)
+    application_log_handler.setLevel(logging.INFO)
+    application_log_handler.setFormatter(formatter)
+    log.addHandler(application_log_handler)
+    log.addHandler(logging.StreamHandler())
+    system_log.error_log.addHandler(application_log_handler)
+
+    fname = getattr(system_log, "rot_access_file", load_properties.get('logs_access_file', DEFAULT_ACCESS_LOG))
+    h = handlers.RotatingFileHandler(fname, 'a', max_bytes, backup_count)
     h.setLevel(logging.INFO)
     h.setFormatter(cherrypy._cplogging.logfmt)
-    log.access_log.handlers = []
-    log.access_log.addHandler(h)
+    system_log.access_log.handlers = []
+    system_log.access_log.addHandler(h)
 
 
 def _update_config(load_properties):
