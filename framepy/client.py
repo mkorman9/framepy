@@ -9,6 +9,9 @@ PROTOCOL = 'http://'
 def _perform_operation(context_path, operation, hosts_list, fallback, **kwargs):
     hosts = hosts_list[:]
 
+    if not context_path.startswith('/'):
+        context_path = '/' + context_path
+
     while hosts:
         host = random.choice(hosts)
         try:

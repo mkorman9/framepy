@@ -5,13 +5,13 @@ with open('requirements.txt') as f:
 
 setup(
     name='framepy',
-    packages=find_packages(),
-    version='0.42',
+    packages=find_packages(exclude=('tests',)),
+    version='0.43',
     description='Very simple web application framework with support for AMQP and DI',
     author='Michal Korman',
     author_email='m.korman94@gmail.com',
     url='https://github.com/mkorman9/framepy',
-    download_url='https://github.com/mkorman9/framepy/tarball/0.42',
+    download_url='https://github.com/mkorman9/framepy/tarball/0.43',
     keywords=['web', 'framework', 'amqp', 'di', 'db'],
     classifiers=[],
     install_requires=[requirement for requirement in requirements if len(requirement) > 0]
