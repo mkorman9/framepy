@@ -97,8 +97,33 @@ class FormBinder(object):
         self.form = core.Context(fields)
 
 
+def form(form_template):
+    def form_retriever(func):
+        def wrapped(instance, *args, **kwargs):
+            try:
+                form_json = json.load(cherrypy.request.body)
+            except ValueError:
+                return ResponseEntity(status='error', error='Cannot parse request body')
+
+            form_binder = FormBinder(form_json, form_template)
+            kwargs.update({'form': form_binder})
+            return func(instance, *args, **kwargs)
+        return wrapped
+    return form_retriever
+
+
+def content_type(mime):
+    def value_retriever(func):
+        def wrapped(instance, *args, **kwargs):
+            cherrypy.response.headers['Content-Type'] = mime
+            return func(instance, *args, **kwargs)
+        return wrapped
+    return value_retriever
+
+
 def exception_handler():
     cherrypy.response.status = 500
+    cherrypy.response.headers['Content-Type'] = 'application/json'
     cherrypy.response.body = ResponseEntity(status='error', error='Internal error').tojson()
 
 
@@ -114,28 +139,22 @@ class BaseController(object):
     def initialize(self):
         pass
 
+    def _set_bad_request_error(self):
+        cherrypy.response.status = 400
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+
     @cherrypy.expose
     def default(self, *vpath, **params):
         def find_handling_method():
             return getattr(self, cherrypy.request.method, None)
 
-        def handle_form():
-            if cherrypy.request.method in ('POST', 'PUT'):
-                try:
-                    return json.load(cherrypy.request.body)
-                except ValueError:
-                    raise ValueError('Cannot parse request body')
-            return None
-
-        def setup_response_headers():
+        def setup_default_response_header():
             cherrypy.response.headers['Content-Type'] = 'application/json'
 
-        def dispatch_event(method, form):
+        def dispatch_event(method):
             if not method:
                 cherrypy.response.status = 404
                 return ResponseEntity(status='error', error="Not found")
-            if form is not None:
-                params['form'] = form
             method_args = inspect.getargspec(method)
             if len(method_args.args) > 1 or method_args.varargs or method_args.keywords:
                 result = method(*vpath, **params)
@@ -144,13 +163,16 @@ class BaseController(object):
             return result
 
         try:
-            setup_response_headers()
-            form = handle_form()
+            setup_default_response_header()
             method = find_handling_method()
-            result = dispatch_event(method, form)
-            if result.status == 'error' and cherrypy.response.status != 404:
-                cherrypy.response.status = 400
-            return result.tojson()
+            result = dispatch_event(method)
+
+            if cherrypy.response.headers['Content-Type'] == 'application/json':
+                if result.status == 'error' and cherrypy.response.status != 404:
+                    self._set_bad_request_error()
+                return result.tojson()
+            else:
+                return result
         except ValueError:
-            cherrypy.response.status = 400
+            self._set_bad_request_error()
             return ResponseEntity(status='error', error='Bad Request').tojson()
