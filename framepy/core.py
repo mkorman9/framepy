@@ -17,6 +17,20 @@ MB_SIZE = 1000000
 Mapping = collections.namedtuple('Mapping', ['bean', 'path'])
 
 log = logging.getLogger('framepy_logger')
+annotated_controllers = {}
+annotated_beans = {}
+
+
+def controller(path):
+    def wrapped(potential_controller_class):
+        annotated_controllers[path] = potential_controller_class
+    return wrapped
+
+
+def bean(key):
+    def wrapped(potential_bean_class):
+        annotated_beans[key] = potential_bean_class
+    return wrapped
 
 
 class Context(object):
@@ -110,6 +124,10 @@ def _create_context(loaded_properties, modules, kwargs):
 
 
 def _register_controllers(context, controllers_mappings):
+    controllers_mappings = controllers_mappings[:]
+    for key, controller in annotated_controllers:
+        controllers_mappings.append(Mapping(key, controller))
+
     for m in controllers_mappings:
         m.bean.context = context
         m.bean.initialize()
@@ -130,7 +148,7 @@ def init_context(properties,
                  controllers_mappings,
                  modules=(),
                  **kwargs):
-    modules = (beans.Module(),) + modules
+    modules = (beans.Module(annotated_beans),) + modules
 
     loaded_properties = _load_properties(properties)
     loaded_properties = _load_remote_configuration(loaded_properties)

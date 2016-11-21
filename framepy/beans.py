@@ -1,8 +1,16 @@
+import core
+
+
 class Module(object):
     name = '_beans'
 
+    def __init__(self, annotated_beans):
+        self.initial_mappings = []
+        for key, bean in annotated_beans:
+            self.initial_mappings.append(core.Mapping(key, bean))
+
     def setup_engine(self, loaded_properties, args):
-        return args.get('beans', [])
+        return self.initial_mappings + args.get('beans', [])
 
     def register_custom_beans(self, beans, args):
         return {bean.path: bean.bean for bean in beans}
