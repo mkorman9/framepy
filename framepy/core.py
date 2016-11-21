@@ -145,8 +145,8 @@ def _shutdown_modules(context, modules):
 
 
 def init_context(properties,
-                 controllers_mappings,
                  modules=(),
+                 controllers_mappings=(),
                  **kwargs):
     modules = (beans.Module(annotated_beans),) + modules
 
