@@ -24,12 +24,14 @@ annotated_beans = {}
 def controller(path):
     def wrapped(potential_controller_class):
         annotated_controllers[path] = potential_controller_class
+        return potential_controller_class
     return wrapped
 
 
 def bean(key):
     def wrapped(potential_bean_class):
         annotated_beans[key] = potential_bean_class
+        return potential_bean_class
     return wrapped
 
 
@@ -124,9 +126,9 @@ def _create_context(loaded_properties, modules, kwargs):
 
 
 def _register_controllers(context, controllers_mappings):
-    controllers_mappings = controllers_mappings[:]
-    for key, controller in annotated_controllers:
-        controllers_mappings.append(Mapping(key, controller))
+    controllers_mappings = list(controllers_mappings[:])
+    for key, controller in annotated_controllers.iteritems():
+        controllers_mappings.append(Mapping(controller(), key))
 
     for m in controllers_mappings:
         m.bean.context = context

@@ -15,6 +15,7 @@ annotated_listeners = {}
 def listener(queue_name):
     def wrapped(potential_listener_class):
         annotated_listeners[queue_name] = potential_listener_class
+        return potential_listener_class
     return wrapped
 
 
@@ -49,8 +50,8 @@ class Module(object):
 
     def after_setup(self, context, args):
         listeners_mappings = args.get('listeners_mappings', [])
-        for key, bean in annotated_listeners:
-            listeners_mappings.append(core.Mapping(key, bean))
+        for key, bean in annotated_listeners.iteritems():
+            listeners_mappings.append(core.Mapping(bean(), key))
 
         for m in listeners_mappings:
             m.bean.context = context
