@@ -1,5 +1,4 @@
 import core
-import inspect
 
 
 annotated_beans = {}
@@ -33,27 +32,16 @@ class Module(object):
             self._initialize_bean(key, bean, context)
 
     def _initialize_bean(self, target_bean_name, target_bean, context):
-        args_of_initialize = filter(lambda arg: arg not in ['self', 'context'],
-                                    inspect.getargspec(target_bean.initialize).args)
-        dependencies_to_inject = {'context': context}
-
-        for arg_name in args_of_initialize:
-            for key, bean in self.all_beans.iteritems():
-                if arg_name == key and bean != target_bean:
-                    dependencies_to_inject[key] = bean
-                    break
-            else:
-                raise NoBeanToInjectException("Cannot inject bean with name '{0}' to {1}"
-                                              .format(arg_name, target_bean.__class__.__name__))
+        for key, bean in self.all_beans.iteritems():
+            if bean != target_bean:
+                property = 'set_' + key
+                if hasattr(target_bean, property):
+                    getattr(target_bean, property)(bean)
 
         try:
-            target_bean.initialize(**dependencies_to_inject)
+            target_bean.initialize(context)
         except Exception as e:
             raise BeanInitializationException("Cannot initialize bean '{0}'".format(target_bean_name), e)
-
-
-class NoBeanToInjectException(Exception):
-    pass
 
 
 class BeanInitializationException(Exception):

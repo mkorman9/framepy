@@ -20,7 +20,7 @@ class Module(object):
         return {}
 
     def after_setup(self, context, args):
-        controllers_mappings = list(annotated_controllers[:])
+        controllers_mappings = []
         for key, controller in annotated_controllers.iteritems():
             controllers_mappings.append(core.Mapping(controller(), key))
 

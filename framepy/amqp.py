@@ -54,8 +54,7 @@ class Module(object):
             listeners_mappings.append(core.Mapping(bean(), key))
 
         for m in listeners_mappings:
-            m.bean.context = context
-            m.bean.initialize()
+            m.bean.initialize(context)
             _register_listener(context, m.path, m.bean.on_message)
 
 
