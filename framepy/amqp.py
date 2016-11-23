@@ -52,7 +52,7 @@ class Module(modules.Module):
             listeners_mappings.append(core.Mapping(bean(), key))
 
         for m in listeners_mappings:
-            m.bean.initialize(context)
+            bean_initializer.initialize_bean('__listener_' + m.path, m.bean, context)
             _register_listener(context, m.path, m.bean.on_message)
 
 
