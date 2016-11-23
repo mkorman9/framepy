@@ -1,4 +1,7 @@
 import unittest
+
+from framepy import core
+
 import framepy.beans
 import framepy.core
 from assertpy import assert_that
@@ -7,14 +10,16 @@ from assertpy import assert_that
 class BeansTest(unittest.TestCase):
     beans = framepy.beans.Module({})
 
-    class ExampleBeanDummy(object):
+    class ExampleBeanDummy(core.BaseBean):
         pass
 
-    class ExampleBeanSpy(object):
+    class ExampleBeanSpy(core.BaseBean):
         def __init__(self):
+            super(BeansTest.ExampleBeanSpy, self).__init__()
             self.initialized = False
 
-        def initialize(self):
+        def initialize(self, context):
+            super(BeansTest.ExampleBeanSpy, self).initialize(context)
             self.initialized = True
 
     def test_bean_should_be_registered(self):
