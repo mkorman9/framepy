@@ -4,6 +4,37 @@ import inspect
 
 from framepy import core
 
+annotated_controllers = {}
+
+
+class Module(object):
+    name = '_web'
+
+    def __init__(self, beans_module):
+        self.beans_module = beans_module
+
+    def setup_engine(self, loaded_properties, args):
+        return None
+
+    def register_custom_beans(self, none, args):
+        return {}
+
+    def after_setup(self, context, args):
+        controllers_mappings = list(annotated_controllers[:])
+        for key, controller in annotated_controllers.iteritems():
+            controllers_mappings.append(core.Mapping(controller(), key))
+
+        for m in controllers_mappings:
+            self.beans_module._initialize_bean('__controller_'.format(m.bean.__class__.__name__), m.bean, context)
+            cherrypy.tree.mount(m.bean, m.path)
+
+
+def controller(path):
+    def wrapped(potential_controller_class):
+        annotated_controllers[path] = potential_controller_class
+        return potential_controller_class
+    return wrapped
+
 
 class FormEntity(object):
     def __init__(self, entries):

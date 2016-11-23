@@ -6,6 +6,7 @@ import beans
 import cherrypy
 import requests
 import pkgutil
+import web
 
 
 DEFAULT_HOST = '127.0.0.1'
@@ -18,22 +19,6 @@ MB_SIZE = 1000000
 Mapping = collections.namedtuple('Mapping', ['bean', 'path'])
 
 log = logging.getLogger('framepy_logger')
-annotated_controllers = {}
-annotated_beans = {}
-
-
-def controller(path):
-    def wrapped(potential_controller_class):
-        annotated_controllers[path] = potential_controller_class
-        return potential_controller_class
-    return wrapped
-
-
-def bean(key):
-    def wrapped(potential_bean_class):
-        annotated_beans[key] = potential_bean_class
-        return potential_bean_class
-    return wrapped
 
 
 class Context(object):
@@ -134,17 +119,6 @@ def _create_context(loaded_properties, modules, kwargs):
     return Context(beans)
 
 
-def _register_controllers(context, controllers_mappings):
-    controllers_mappings = list(controllers_mappings[:])
-    for key, controller in annotated_controllers.iteritems():
-        controllers_mappings.append(Mapping(controller(), key))
-
-    for m in controllers_mappings:
-        m.bean.context = context
-        m.bean.initialize()
-        cherrypy.tree.mount(m.bean, m.path)
-
-
 def _after_setup(context, modules, kwargs):
     for module in modules:
         module.after_setup(context, kwargs)
@@ -157,9 +131,9 @@ def scan_packages():
 
 def init_context(properties,
                  modules=(),
-                 controllers_mappings=(),
                  **kwargs):
-    modules = (beans.Module(annotated_beans),) + modules
+    beans_module = beans.Module()
+    modules = (web.Module(beans_module), beans_module) + modules
 
     loaded_properties = _load_properties(properties)
     loaded_properties = _load_remote_configuration(loaded_properties)
@@ -167,7 +141,6 @@ def init_context(properties,
     _setup_logging(loaded_properties)
     context = _create_context(loaded_properties, modules, kwargs)
 
-    _register_controllers(context, controllers_mappings)
     _after_setup(context, modules, kwargs)
 
     return cherrypy.tree

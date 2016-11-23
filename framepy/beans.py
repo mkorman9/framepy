@@ -2,10 +2,20 @@ import core
 import inspect
 
 
+annotated_beans = {}
+
+
+def bean(key):
+    def wrapped(potential_bean_class):
+        annotated_beans[key] = potential_bean_class
+        return potential_bean_class
+    return wrapped
+
+
 class Module(object):
     name = '_beans'
 
-    def __init__(self, annotated_beans):
+    def __init__(self):
         self.initial_mappings = []
         for key, bean in annotated_beans.iteritems():
             self.initial_mappings.append(core.Mapping(bean(), key))

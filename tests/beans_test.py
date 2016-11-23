@@ -8,7 +8,7 @@ from assertpy import assert_that
 
 
 class BeansTest(unittest.TestCase):
-    beans = framepy.beans.Module({})
+    beans = framepy.beans.Module()
 
     class ExampleBeanDummy(core.BaseBean):
         pass
