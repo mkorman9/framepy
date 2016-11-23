@@ -1,7 +1,11 @@
 import json
 import cherrypy
-import core
 import inspect
+
+
+class FormEntity(object):
+    def __init__(self, entries):
+        self.__dict__.update(entries)
 
 
 class ResponseEntity(object):
@@ -57,7 +61,7 @@ class FormBinder(object):
                     another_binder = FormBinder(value, constraint.nested)
                     if another_binder.has_errors():
                         self.errors.extend(another_binder.errors)
-                    value = another_binder.form
+                    value = another_binder.entity
             else:
                 if value is None and constraint.required:
                     self.errors.append({'field': constraint.name, 'error': 'MISSING_FIELD'})
@@ -94,7 +98,7 @@ class FormBinder(object):
                         except ValueError:
                             self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
             fields[constraint.name] = value
-        self.form = core.Context(fields)
+        self.entity = FormEntity(fields)
 
 
 def form(form_template):

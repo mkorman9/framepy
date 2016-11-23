@@ -16,7 +16,7 @@ class FormBindingTest(unittest.TestCase):
 
         # then
         assert_that(binder.has_errors()).is_false()
-        assert_that(binder.form).is_not_none()
+        assert_that(binder.entity).is_not_none()
 
     def test_should_fail_if_missing_required_param(self):
         # given
@@ -45,8 +45,8 @@ class FormBindingTest(unittest.TestCase):
 
         # then
         assert_that(binder.has_errors()).is_false()
-        assert_that(binder.form).is_not_none()
-        assert_that(binder.form.name).is_equal_to('xyz')
+        assert_that(binder.entity).is_not_none()
+        assert_that(binder.entity.name).is_equal_to('xyz')
 
     def test_should_not_fail_if_passed_optional_param(self):
         # given
@@ -60,8 +60,8 @@ class FormBindingTest(unittest.TestCase):
 
         # then
         assert_that(binder.has_errors()).is_false()
-        assert_that(binder.form).is_not_none()
-        assert_that(binder.form.name).is_equal_to('xyz')
+        assert_that(binder.entity).is_not_none()
+        assert_that(binder.entity.name).is_equal_to('xyz')
 
     def test_should_not_fail_if_missing_optional_param(self):
         # given
@@ -75,7 +75,7 @@ class FormBindingTest(unittest.TestCase):
 
         # then
         assert_that(binder.has_errors()).is_false()
-        assert_that(binder.form).is_not_none()
+        assert_that(binder.entity).is_not_none()
 
     def test_should_fail_if_wrong_type(self):
         # given
@@ -168,9 +168,9 @@ class FormBindingTest(unittest.TestCase):
 
         # then
         assert_that(binder.has_errors()).is_false()
-        assert_that(binder.form).is_not_none()
-        assert_that(binder.form.inner.name).is_equal_to('Michael')
-        assert_that(binder.form.inner.age).is_equal_to(20)
+        assert_that(binder.entity).is_not_none()
+        assert_that(binder.entity.inner.name).is_equal_to('Michael')
+        assert_that(binder.entity.inner.age).is_equal_to(20)
 
     def test_should_fail_in_nested_form(self):
         # given
