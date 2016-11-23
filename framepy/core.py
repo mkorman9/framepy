@@ -41,6 +41,14 @@ class Context(object):
         self.__dict__.update(entries)
 
 
+class BaseBean(object):
+    def __init__(self):
+        self.context = None
+
+    def initialize(self, context):
+        self.context = context
+
+
 def _setup_logging(load_properties):
     system_log = cherrypy.log
     system_log.error_file = ""

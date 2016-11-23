@@ -59,13 +59,7 @@ class Module(object):
             _register_listener(context, m.path, m.bean.on_message)
 
 
-class BaseListener(object):
-    def __init__(self):
-        self.context = None
-
-    def initialize(self):
-        pass
-
+class BaseListener(core.BaseBean):
     def on_message(self, channel, method, properties, body):
         pass
 

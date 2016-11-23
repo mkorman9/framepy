@@ -2,6 +2,8 @@ import json
 import cherrypy
 import inspect
 
+from framepy import core
+
 
 class FormEntity(object):
     def __init__(self, entries):
@@ -131,17 +133,11 @@ def exception_handler():
     cherrypy.response.body = ResponseEntity(status='error', error='Internal error').tojson()
 
 
-class BaseController(object):
+class BaseController(core.BaseBean):
     _cp_config = {'request.error_response': exception_handler,
                   'show_tracebacks': False,
                   'show_mismatched_params': False,
                   'throw_errors': False}
-
-    def __init__(self):
-        self.context = None
-
-    def initialize(self):
-        pass
 
     def _set_bad_request_error(self):
         cherrypy.response.status = 400
