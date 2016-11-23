@@ -150,11 +150,6 @@ def _after_setup(context, modules, kwargs):
         module.after_setup(context, kwargs)
 
 
-def _shutdown_modules(context, modules):
-    for module in modules:
-        module.shutdown(context)
-
-
 def scan_packages():
     for modname in (modname for importer, modname, ispkg in pkgutil.walk_packages('.') if '.' in modname):
         __import__(modname)
