@@ -3,28 +3,24 @@ import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 import cherrypy
 import contextlib
-
+import modules
 
 Table = sqlalchemy.ext.declarative.declarative_base()
 
 
-class Module(object):
-    name = 'db'
-
-    def setup_engine(self, loaded_properties, args):
-        database_url = loaded_properties.get('database_url')
+class Module(modules.Module):
+    def before_setup(self, properties, arguments, beans):
+        database_url = properties.get('database_url')
 
         if database_url is None or not database_url:
             cherrypy.log.error('No database url found in properties. Skipping ORM engine creation.')
             return None
 
         # mysql+pymysql://{username}:{password}@url
-        return sqlalchemy.create_engine(database_url)
+        beans['db_engine'] = sqlalchemy.create_engine(database_url)
+        beans['_session_maker'] = sqlalchemy.orm.sessionmaker(bind=beans['db_engine'])
 
-    def register_custom_beans(self, db_engine, args):
-        return {'_session_maker': sqlalchemy.orm.sessionmaker(bind=db_engine)} if db_engine is not None else {}
-
-    def after_setup(self, context, args):
+    def after_setup(self, properties, arguments, context, beans_initializer):
         pass
 
 

@@ -1,31 +1,21 @@
 import json
 import cherrypy
 import inspect
-
-from framepy import core
+import core
+import modules
 
 annotated_controllers = {}
 
 
-class Module(object):
-    name = '_web'
+class Module(modules.Module):
+    def before_setup(self, properties, arguments, beans):
+        pass
 
-    def __init__(self, beans_module):
-        self.beans_module = beans_module
-
-    def setup_engine(self, loaded_properties, args):
-        return None
-
-    def register_custom_beans(self, none, args):
-        return {}
-
-    def after_setup(self, context, args):
-        controllers_mappings = []
-        for key, controller in annotated_controllers.iteritems():
-            controllers_mappings.append(core.Mapping(controller(), key))
+    def after_setup(self, properties, arguments, context, beans_initializer):
+        controllers_mappings = [core.Mapping(controller(), key) for key, controller in annotated_controllers.iteritems()]
 
         for m in controllers_mappings:
-            self.beans_module._initialize_bean('__controller_'.format(m.bean.__class__.__name__), m.bean, context)
+            beans_initializer.initialize_bean('__controller_'.format(m.bean.__class__.__name__), m.bean, context)
             cherrypy.tree.mount(m.bean, m.path)
 
 

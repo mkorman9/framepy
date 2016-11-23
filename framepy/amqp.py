@@ -4,6 +4,7 @@ import pika.exceptions
 import threading
 import time
 import core
+import modules
 
 WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
 CONNECTION_RETRIES_COUNT = 3
@@ -19,12 +20,12 @@ def listener(queue_name):
     return wrapped
 
 
-class Module(object):
-    name = 'amqp'
+class Module(modules.Module):
+    def before_setup(self, properties, arguments, beans):
+        beans['_amqp_connection_cache'] = {}
 
-    def setup_engine(self, loaded_properties, args):
         def parse_address():
-            broker_address = loaded_properties['broker_address']
+            broker_address = properties['broker_address']
             address_parts = broker_address.split(':')
 
             if len(address_parts) == 1:
@@ -38,18 +39,15 @@ class Module(object):
                 return None, None
             return broker_host, broker_port
 
-        broker_username = loaded_properties['broker_username']
-        broker_password = loaded_properties['broker_password']
+        broker_username = properties['broker_username']
+        broker_password = properties['broker_password']
         broker_host, broker_port = parse_address()
 
         credentials = pika.PlainCredentials(broker_username, broker_password)
-        return pika.ConnectionParameters(broker_host, broker_port, '/', credentials)
+        beans['amqp_engine'] = pika.ConnectionParameters(broker_host, broker_port, '/', credentials)
 
-    def register_custom_beans(self, broker_engine, args):
-        return {'_amqp_connection_cache':{}}
-
-    def after_setup(self, context, args):
-        listeners_mappings = args.get('listeners_mappings', [])
+    def after_setup(self, properties, arguments, context, bean_initializer):
+        listeners_mappings = arguments.get('listeners_mappings', [])
         for key, bean in annotated_listeners.iteritems():
             listeners_mappings.append(core.Mapping(bean(), key))
 

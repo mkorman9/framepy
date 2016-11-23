@@ -111,17 +111,15 @@ def _load_remote_configuration(properties):
 def _create_context(loaded_properties, modules, kwargs):
     beans = {}
     for module in modules:
-        engine = module.setup_engine(loaded_properties, kwargs)
-        var_name = module.name + '_engine'
-        beans[var_name] = engine
-        beans.update(module.register_custom_beans(engine, kwargs))
+        module.before_setup(loaded_properties, kwargs, beans)
 
     return Context(beans)
 
 
-def _after_setup(context, modules, kwargs):
+def _after_setup(context, modules, kwargs, properties, beans_initializer):
+    beans_initializer.initialize_all(context)
     for module in modules:
-        module.after_setup(context, kwargs)
+        module.after_setup(properties, kwargs, context, beans_initializer)
 
 
 def scan_packages():
@@ -132,8 +130,8 @@ def scan_packages():
 def init_context(properties,
                  modules=(),
                  **kwargs):
-    beans_module = beans.Module()
-    modules = (web.Module(beans_module), beans_module) + modules
+    beans_initializer = beans.BeansInitializer()
+    modules = (web.Module(),) + modules
 
     loaded_properties = _load_properties(properties)
     loaded_properties = _load_remote_configuration(loaded_properties)
@@ -141,7 +139,7 @@ def init_context(properties,
     _setup_logging(loaded_properties)
     context = _create_context(loaded_properties, modules, kwargs)
 
-    _after_setup(context, modules, kwargs)
+    _after_setup(context, modules, kwargs, loaded_properties, beans_initializer)
 
     return cherrypy.tree
 

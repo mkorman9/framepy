@@ -3,15 +3,14 @@ import json
 import cherrypy
 import threading
 import time
+import modules
 
 
-class Module(object):
-    name = 'eureka'
-
-    def setup_engine(self, loaded_properties, args):
-        app_name = loaded_properties.get('app_name')
-        remote_config_url = loaded_properties.get('remote_config_url')
-        public_hostname = loaded_properties.get('public_hostname')
+class Module(modules.Module):
+    def before_setup(self, properties, arguments, beans):
+        app_name = properties.get('app_name')
+        remote_config_url = properties.get('remote_config_url')
+        public_hostname = properties.get('public_hostname')
 
         if app_name is None or not app_name:
             cherrypy.log.error('Missing app_name! Skipping registration in eureka cluster')
@@ -30,12 +29,9 @@ class Module(object):
         _register_instance(remote_config_url, app_name, public_hostname)
         _register_heartbeat_service(remote_config_url, app_name, public_hostname)
 
-        return remote_config_url
+        beans['_eureka_url'] = remote_config_url
 
-    def register_custom_beans(self, remote_config_url, args):
-        return {'_eureka_url': remote_config_url}
-
-    def after_setup(self, context, args):
+    def after_setup(self, properties, arguments, context, beans_initializer):
         pass
 
 
