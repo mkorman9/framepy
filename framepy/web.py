@@ -49,7 +49,7 @@ class ResponseEntity(object):
 
 
 class FormConstraint(object):
-    def __init__(self, name, required='true', type='string', min=0, max=0xffffffff, default=None, nested=None):
+    def __init__(self, name, required=True, type='string', min=0, max=0xffffffff, default=None, nested=None):
         self.name = name
         self.required = required
         self.type = type
@@ -61,6 +61,7 @@ class FormConstraint(object):
 
 class FormBinder(object):
     def __init__(self, form, form_template):
+        self.types_resolvers = {'int': self._resolve_int, 'float': self._resolve_float, 'string': self._resolve_string}
         self.errors = []
         self._form_template = form_template
         self._bind_form(form)
@@ -75,53 +76,66 @@ class FormBinder(object):
         fields = {}
         for constraint in constraints:
             value = form.get(constraint.name, None)
+            value_to_bind = self._process_nested_form(value, constraint) if constraint.nested is not None \
+                else self._process_fields(value, constraint)
 
-            if constraint.nested is not None:
-                if value is None and constraint.required:
-                    self.errors.append({'field': constraint.name, 'error': 'MISSING_FIELD'})
-                    continue
-                elif value is not None:
-                    another_binder = FormBinder(value, constraint.nested)
-                    if another_binder.has_errors():
-                        self.errors.extend(another_binder.errors)
-                    value = another_binder.entity
-            else:
-                if value is None and constraint.required:
-                    self.errors.append({'field': constraint.name, 'error': 'MISSING_FIELD'})
-                    continue
-                elif value is None and not constraint.required:
-                    value = constraint.default
+            if value_to_bind is not None:
+                fields[constraint.name] = value_to_bind
 
-                if value is not None:
-                    if constraint.type == 'int':
-                        try:
-                            int(value)
-                            if value > constraint.max:
-                                self.errors.append({'field': constraint.name, 'error': 'MAX'})
-                            if value < constraint.min:
-                                self.errors.append({'field': constraint.name, 'error': 'MIN'})
-                        except ValueError:
-                            self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
-                    elif constraint.type == 'float':
-                        try:
-                            float(value)
-                            if value > constraint.max:
-                                self.errors.append({'field': constraint.name, 'error': 'MAX'})
-                            if value < constraint.min:
-                                self.errors.append({'field': constraint.name, 'error': 'MIN'})
-                        except ValueError:
-                            self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
-                    elif constraint.type == 'string':
-                        try:
-                            str(value)
-                            if len(value) > constraint.max:
-                                self.errors.append({'field': constraint.name, 'error': 'MAX_LENGTH'})
-                            if len(value) < constraint.min:
-                                self.errors.append({'field': constraint.name, 'error': 'MIN_LENGTH'})
-                        except ValueError:
-                            self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
-            fields[constraint.name] = value
         self.entity = FormEntity(fields)
+
+    def _process_nested_form(self, value, constraint):
+        if value is None and constraint.required:
+            self.errors.append({'field': constraint.name, 'error': 'MISSING_FIELD'})
+            return None
+        elif value is not None:
+            another_binder = FormBinder(value, constraint.nested)
+            if another_binder.has_errors():
+                self.errors.extend(another_binder.errors)
+            return another_binder.entity
+
+    def _process_fields(self, value, constraint):
+        if value is None and constraint.required:
+            self.errors.append({'field': constraint.name, 'error': 'MISSING_FIELD'})
+            return None
+        elif value is None and not constraint.required:
+            value = constraint.default
+
+        if value is not None:
+            try:
+                type_resolver = self.types_resolvers.get(constraint.type)
+                if type_resolver is not None:
+                    type_resolver(value, constraint)
+                else:
+                    raise UnknowFieldType('Unknown field type {0}'.format(constraint.type))
+            except ValueError:
+                self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
+        return value
+
+    def _resolve_int(self, value, constraint):
+        int(value)
+        if value > constraint.max:
+            self.errors.append({'field': constraint.name, 'error': 'MAX'})
+        if value < constraint.min:
+            self.errors.append({'field': constraint.name, 'error': 'MIN'})
+
+    def _resolve_float(self, value, constraint):
+        float(value)
+        if value > constraint.max:
+            self.errors.append({'field': constraint.name, 'error': 'MAX'})
+        if value < constraint.min:
+            self.errors.append({'field': constraint.name, 'error': 'MIN'})
+
+    def _resolve_string(self, value, constraint):
+        str(value)
+        if len(value) > constraint.max:
+            self.errors.append({'field': constraint.name, 'error': 'MAX_LENGTH'})
+        if len(value) < constraint.min:
+            self.errors.append({'field': constraint.name, 'error': 'MIN_LENGTH'})
+
+
+class UnknowFieldType(Exception):
+    pass
 
 
 def form(form_template):
