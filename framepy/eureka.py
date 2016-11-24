@@ -1,5 +1,8 @@
 import requests
 import json
+
+from framepy import core
+
 import framepy
 import threading
 import time
@@ -26,7 +29,7 @@ class Module(modules.Module):
             remote_config_url += '/'
         remote_config_url += 'eureka'
 
-        _register_instance(remote_config_url, app_name, public_hostname)
+        _register_instance(remote_config_url, app_name, public_hostname, properties)
         _register_heartbeat_service(remote_config_url, app_name, public_hostname)
 
         beans['_eureka_url'] = remote_config_url
@@ -44,7 +47,7 @@ def list_instances(context, service_name):
     return [instance['hostName'] + ':' + str(instance['port']['$']) for instance in instances_list]
 
 
-def _register_instance(eureka_url, app_name, hostname):
+def _register_instance(eureka_url, app_name, hostname, properties):
     instance_data = {
         'instance': {
             'hostName': hostname,
@@ -52,7 +55,7 @@ def _register_instance(eureka_url, app_name, hostname):
             'app': app_name,
             'status': 'UP',
             'port': {
-                "$": 8080,
+                "$": properties.get('server_port', core.DEFAULT_PORT),
                 "@enabled": 'true'
             },
             'dataCenterInfo': {
