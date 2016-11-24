@@ -107,7 +107,7 @@ class PayloadBinder(object):
                 if type_resolver is not None:
                     type_resolver(value, constraint)
                 else:
-                    raise UnknowFieldType('Unknown field type {0}'.format(constraint.type))
+                    raise UnknownFieldType('Unknown field type {0}'.format(constraint.type))
             except ValueError:
                 self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
         return value
@@ -134,7 +134,7 @@ class PayloadBinder(object):
             self.errors.append({'field': constraint.name, 'error': 'MIN_LENGTH'})
 
 
-class UnknowFieldType(Exception):
+class UnknownFieldType(Exception):
     pass
 
 
