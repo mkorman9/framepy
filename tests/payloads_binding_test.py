@@ -3,16 +3,16 @@ import framepy.web
 from assertpy import assert_that
 
 
-class FormBindingTest(unittest.TestCase):
-    def test_empty_form_should_be_mapped(self):
+class PayloadBindingTest(unittest.TestCase):
+    def test_empty_payload_should_be_mapped(self):
         # given
-        class EmptyForm(object):
+        class EmptyPayload(object):
             pass
 
-        form_data = {}
+        payload_data = {}
 
         # when
-        binder = framepy.web.FormBinder(form_data, EmptyForm)
+        binder = framepy.web.PayloadBinder(payload_data, EmptyPayload)
 
         # then
         assert_that(binder.has_errors()).is_false()
@@ -20,13 +20,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_fail_if_missing_required_param(self):
         # given
-        class SingleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=True)
+        class SingleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=True)
 
-        form_data = {}
+        payload_data = {}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_true()
@@ -35,13 +35,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_not_fail_if_passed_required_param(self):
         # given
-        class SingleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=True)
+        class SingleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=True)
 
-        form_data = {'name':'xyz'}
+        payload_data = {'name': 'xyz'}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_false()
@@ -50,13 +50,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_not_fail_if_passed_optional_param(self):
         # given
-        class SingleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=False)
+        class SingleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=False)
 
-        form_data = {'name':'xyz'}
+        payload_data = {'name': 'xyz'}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_false()
@@ -65,13 +65,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_not_fail_if_missing_optional_param(self):
         # given
-        class SingleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=False)
+        class SingleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=False)
 
-        form_data = {}
+        payload_data = {}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_false()
@@ -79,13 +79,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_fail_if_wrong_type(self):
         # given
-        class SingleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=True, type='int')
+        class SingleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=True, type='int')
 
-        form_data = {'name': 'asdf'}
+        payload_data = {'name': 'asdf'}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_true()
@@ -94,13 +94,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_fail_if_string_too_long(self):
         # given
-        class SingleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=True, max=10, type='string')
+        class SingleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=True, max=10, type='string')
 
-        form_data = {'name': '12345678901'}
+        payload_data = {'name': '12345678901'}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_true()
@@ -109,13 +109,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_fail_if_int_too_big(self):
         # given
-        class SingleParamForm(object):
-            age = framepy.web.FormConstraint('age', required=True, max=10, type='int')
+        class SingleParamPayload(object):
+            age = framepy.web.PayloadConstraint('age', required=True, max=10, type='int')
 
-        form_data = {'age': 11}
+        payload_data = {'age': 11}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_true()
@@ -124,13 +124,13 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_fail_if_string_too_short(self):
         # given
-        class SingleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=True, min=10, type='string')
+        class SingleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=True, min=10, type='string')
 
-        form_data = {'name': '123456789'}
+        payload_data = {'name': '123456789'}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_true()
@@ -139,32 +139,32 @@ class FormBindingTest(unittest.TestCase):
 
     def test_should_fail_if_int_too_small(self):
         # given
-        class SingleParamForm(object):
-            age = framepy.web.FormConstraint('age', required=True, min=10, type='int')
+        class SingleParamPayload(object):
+            age = framepy.web.PayloadConstraint('age', required=True, min=10, type='int')
 
-        form_data = {'age': 9}
+        payload_data = {'age': 9}
 
         # when
-        binder = framepy.web.FormBinder(form_data, SingleParamForm)
+        binder = framepy.web.PayloadBinder(payload_data, SingleParamPayload)
 
         # then
         assert_that(binder.has_errors()).is_true()
         assert_that(binder.errors[0]['field']).is_equal_to('age')
         assert_that(binder.errors[0]['error']).is_equal_to('MIN')
 
-    def test_should_validate_nested_form(self):
+    def test_should_validate_nested_payload(self):
         # given
-        class MultipleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=True, min=4, max=10, type='string')
-            age = framepy.web.FormConstraint('age', required=True, min=18, max=100, type='int')
+        class MultipleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=True, min=4, max=10, type='string')
+            age = framepy.web.PayloadConstraint('age', required=True, min=18, max=100, type='int')
 
-        class OutterForm(object):
-            inner = framepy.web.FormConstraint('inner', required=True, nested=MultipleParamForm)
+        class OutterPayload(object):
+            inner = framepy.web.PayloadConstraint('inner', required=True, nested=MultipleParamPayload)
 
-        form_data = {'inner': {'name':'Michael', 'age':20}}
+        payload_data = {'inner': {'name': 'Michael', 'age': 20}}
 
         # when
-        binder = framepy.web.FormBinder(form_data, OutterForm)
+        binder = framepy.web.PayloadBinder(payload_data, OutterPayload)
 
         # then
         assert_that(binder.has_errors()).is_false()
@@ -172,19 +172,19 @@ class FormBindingTest(unittest.TestCase):
         assert_that(binder.entity.inner.name).is_equal_to('Michael')
         assert_that(binder.entity.inner.age).is_equal_to(20)
 
-    def test_should_fail_in_nested_form(self):
+    def test_should_fail_in_nested_payload(self):
         # given
-        class MultipleParamForm(object):
-            name = framepy.web.FormConstraint('name', required=True, min=4, max=10, type='string')
-            age = framepy.web.FormConstraint('age', required=True, min=18, max=100, type='int')
+        class MultipleParamPayload(object):
+            name = framepy.web.PayloadConstraint('name', required=True, min=4, max=10, type='string')
+            age = framepy.web.PayloadConstraint('age', required=True, min=18, max=100, type='int')
 
-        class OutterForm(object):
-            inner = framepy.web.FormConstraint('inner', required=True, nested=MultipleParamForm)
+        class OutterPayload(object):
+            inner = framepy.web.PayloadConstraint('inner', required=True, nested=MultipleParamPayload)
 
-        form_data = {'inner': {'name':'Jon', 'age':15}}
+        payload_data = {'inner': {'name': 'Jon', 'age': 15}}
 
         # when
-        binder = framepy.web.FormBinder(form_data, OutterForm)
+        binder = framepy.web.PayloadBinder(payload_data, OutterPayload)
 
         # then
         assert_that(binder.has_errors()).is_true()

@@ -26,7 +26,7 @@ def controller(path):
     return wrapped
 
 
-class FormEntity(object):
+class PayloadEntity(object):
     def __init__(self, entries):
         self.__dict__.update(entries)
 
@@ -48,7 +48,7 @@ class ResponseEntity(object):
         return ResponseEntity._json_encoder.encode(self)
 
 
-class FormConstraint(object):
+class PayloadConstraint(object):
     def __init__(self, name, required=True, type='string', min=0, max=0xffffffff, default=None, nested=None):
         self.name = name
         self.required = required
@@ -59,37 +59,37 @@ class FormConstraint(object):
         self.nested = nested
 
 
-class FormBinder(object):
-    def __init__(self, form, form_template):
+class PayloadBinder(object):
+    def __init__(self, payload, payload_template):
         self.types_resolvers = {'int': self._resolve_int, 'float': self._resolve_float, 'string': self._resolve_string}
         self.errors = []
-        self._form_template = form_template
-        self._bind_form(form)
+        self._payload_template = payload_template
+        self._bind_payload(payload)
 
     def has_errors(self):
         return len(self.errors) > 0
 
-    def _bind_form(self, form):
-        constraints = [getattr(self._form_template, constraint)
-                       for constraint in self._form_template.__dict__
-                       if isinstance(getattr(self._form_template, constraint), FormConstraint)]
+    def _bind_payload(self, payload):
+        constraints = [getattr(self._payload_template, constraint)
+                       for constraint in self._payload_template.__dict__
+                       if isinstance(getattr(self._payload_template, constraint), PayloadConstraint)]
         fields = {}
         for constraint in constraints:
-            value = form.get(constraint.name, None)
-            value_to_bind = self._process_nested_form(value, constraint) if constraint.nested is not None \
+            value = payload.get(constraint.name, None)
+            value_to_bind = self._process_nested_payload(value, constraint) if constraint.nested is not None \
                 else self._process_fields(value, constraint)
 
             if value_to_bind is not None:
                 fields[constraint.name] = value_to_bind
 
-        self.entity = FormEntity(fields)
+        self.entity = PayloadEntity(fields)
 
-    def _process_nested_form(self, value, constraint):
+    def _process_nested_payload(self, value, constraint):
         if value is None and constraint.required:
             self.errors.append({'field': constraint.name, 'error': 'MISSING_FIELD'})
             return None
         elif value is not None:
-            another_binder = FormBinder(value, constraint.nested)
+            another_binder = PayloadBinder(value, constraint.nested)
             if another_binder.has_errors():
                 self.errors.extend(another_binder.errors)
             return another_binder.entity
@@ -138,19 +138,19 @@ class UnknowFieldType(Exception):
     pass
 
 
-def form(form_template):
-    def form_retriever(func):
+def payload(payload_template):
+    def payload_retriever(func):
         def wrapped(instance, *args, **kwargs):
             try:
-                form_json = json.load(cherrypy.request.body)
+                payload_json = json.load(cherrypy.request.body)
             except ValueError:
                 return ResponseEntity(status='error', error='Cannot parse request body')
 
-            form_binder = FormBinder(form_json, form_template)
-            kwargs.update({'form': form_binder})
+            payload_binder = PayloadBinder(payload_json, payload_template)
+            kwargs.update({'payload': payload_binder})
             return func(instance, *args, **kwargs)
         return wrapped
-    return form_retriever
+    return payload_retriever
 
 
 def content_type(mime):
