@@ -58,8 +58,9 @@ def _after_setup(context, modules, kwargs, properties, beans_initializer):
         module.after_setup(properties, kwargs, context, beans_initializer)
 
 
-def scan_packages():
-    for modname in (modname for importer, modname, ispkg in pkgutil.walk_packages('.') if '.' in modname):
+def scan_packages(packages_filter=lambda _: True):
+    for modname in (modname for importer, modname, ispkg in pkgutil.walk_packages('.')
+                    if '.' in modname and packages_filter(modname)):
         __import__(modname)
 
 
