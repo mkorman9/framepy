@@ -1,5 +1,5 @@
 import redis
-import cherrypy
+import framepy
 import modules
 
 DEFAULT_REDIS_PORT = 6379
@@ -12,17 +12,16 @@ class Module(modules.Module):
         password = properties.get('redis_password')
 
         if redis_host is None or not redis_host:
-            cherrypy.log.error('Missing redis_host!')
+            framepy.log.error('[Redis] Missing redis_host!')
             return
         if redis_port is None or not redis_port:
-            cherrypy.log.error('Missing redis_port! Setting default value ' + str(DEFAULT_REDIS_PORT))
+            framepy.log.error('[Redis] Missing redis_port! Setting default value ' + str(DEFAULT_REDIS_PORT))
             redis_port = DEFAULT_REDIS_PORT
         if password is None or not password:
-            cherrypy.log.error('Missing password! Skipping authentication')
+            framepy.log.error('[Redis] Missing password! Skipping authentication')
             password = None
 
-        beans['redisdb_engine'] = redis.ConnectionPool(host=redis_host, port=int(redis_port), db=0, password=password)
-        beans['_redis_pool'] = beans['redisdb_engine']
+        beans['_redis_pool'] = redis.ConnectionPool(host=redis_host, port=int(redis_port), db=0, password=password)
 
     def after_setup(self, properties, arguments, context, beans_initializer):
         pass
@@ -37,6 +36,6 @@ def get_connection(context):
     try:
         connection.ping()
     except redis.exceptions.ConnectionError:
-        cherrypy.log.error('Redis connection pool returned invalid connection!')
+        framepy.log.error('[Redis] Connection pool returned invalid connection!')
         raise ConnectionError('Cannot connect to Redis')
     return connection

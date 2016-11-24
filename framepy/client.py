@@ -1,6 +1,6 @@
 import random
 import requests
-import cherrypy
+import framepy
 
 HTTP_SERVER_ERRORS_BORDER = 500
 PROTOCOL = 'http://'
@@ -20,9 +20,8 @@ def _perform_operation(context_path, operation, hosts_list, fallback, **kwargs):
             if response.status_code < HTTP_SERVER_ERRORS_BORDER:
                 return response.json()
         except requests.exceptions.ConnectionError:
-            pass
+            framepy.log.error('Invoking {0} on node {1} failed!'.format(context_path, host))
 
-        cherrypy.log.error('Invoking {0} on node {1} failed!'.format(context_path, host))
         hosts = [h for h in hosts if h != host]
 
     if fallback is not None:

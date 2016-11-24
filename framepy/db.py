@@ -1,7 +1,7 @@
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
-import cherrypy
+import framepy
 import contextlib
 import modules
 
@@ -13,7 +13,7 @@ class Module(modules.Module):
         database_url = properties.get('database_url')
 
         if database_url is None or not database_url:
-            cherrypy.log.error('No database url found in properties. Skipping ORM engine creation.')
+            framepy.log.error('[DB] No database_url found in properties. Skipping ORM engine creation.')
             return None
 
         # mysql+pymysql://{username}:{password}@url

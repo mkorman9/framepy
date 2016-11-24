@@ -1,6 +1,6 @@
 import requests
 import json
-import cherrypy
+import framepy
 import threading
 import time
 import modules
@@ -13,13 +13,13 @@ class Module(modules.Module):
         public_hostname = properties.get('public_hostname')
 
         if app_name is None or not app_name:
-            cherrypy.log.error('Missing app_name! Skipping registration in eureka cluster')
+            framepy.log.error('[Eureka] Missing app_name! Skipping registration in eureka cluster')
             return
         if remote_config_url is None or not remote_config_url:
-            cherrypy.log.error('Missing remote_config_url! Skipping registration in eureka cluster')
+            framepy.log.error('[Eureka] Missing remote_config_url! Skipping registration in eureka cluster')
             return
         if public_hostname is None or not public_hostname:
-            cherrypy.log.error('Missing public_hostname! Skipping registration in eureka cluster')
+            framepy.log.error('[Eureka] Missing public_hostname! Skipping registration in eureka cluster')
             return
 
         if not remote_config_url.endswith('/'):
@@ -45,11 +45,6 @@ def list_instances(context, service_name):
 
 
 def _register_instance(eureka_url, app_name, hostname):
-    data_center_info = {
-        "@class":"com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
-        "name": "MyOwn"
-    }
-
     instance_data = {
         'instance': {
             'hostName': hostname,
@@ -60,7 +55,10 @@ def _register_instance(eureka_url, app_name, hostname):
                 "$": 8080,
                 "@enabled": 'true'
             },
-            'dataCenterInfo': data_center_info
+            'dataCenterInfo': {
+                "@class": "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
+                "name": "MyOwn"
+            }
         }
     }
 
@@ -68,16 +66,16 @@ def _register_instance(eureka_url, app_name, hostname):
         response = requests.post(eureka_url + '/apps/' + app_name, json.dumps(instance_data),
                                  headers={'Content-Type': 'application/json'})
         if response.status_code < 200 or response.status_code >= 300:
-            cherrypy.log.error('Cannot register instance on eureka server! Status code ' + str(response.status_code))
+            framepy.log.error('[Eureka] Cannot register instance on server! Status code {0}'.format(response.status_code))
     except requests.exceptions.ConnectionError:
-        cherrypy.log.error('Cannot connect to eureka server!')
+        framepy.log.error('[Eureka] Cannot connect to server!')
 
 
 def _send_heartbeat(eureka_url, app_name, hostname):
     response = requests.put(eureka_url + '/apps/' + app_name + '/' + hostname,
                             headers={'Content-Type': 'application/json'})
     if response.status_code < 200 or response.status_code >= 300:
-        cherrypy.log.error('Sending heartbeat to eureka cluster failed! Status code ' + str(response.status_code))
+        framepy.log.error('[Eureka] Sending heartbeat to cluster failed! Status code {0}'.format(response.status_code))
 
 
 def _register_heartbeat_service(remote_config_url, app_name, public_hostname):

@@ -1,4 +1,4 @@
-import cherrypy
+import framepy
 import pika
 import pika.exceptions
 import threading
@@ -35,7 +35,7 @@ class Module(modules.Module):
                 broker_host = address_parts[0]
                 broker_port = int(address_parts[1])
             else:
-                cherrypy.log.error('Invalid broker address!')
+                framepy.log.error('Invalid broker address!')
                 return None, None
             return broker_host, broker_port
 
@@ -99,8 +99,8 @@ def _establish_connection(context):
                 time.sleep(WAIT_TIME_AFTER_CONNECTION_FAILURE)
                 tries_count -= 1
         else:
-            cherrypy.log.error('Cannot establish AMQP connection with {0}:{1}'.format(context.amqp_engine.host,
-                                                                                      context.amqp_engine.port))
+            framepy.log.error('[AMQP] Cannot establish connection with {0}:{1}'.format(context.amqp_engine.host,
+                                                                                       context.amqp_engine.port))
             raise ConnectionError('Cannot establish AMQP connection')
     return new_connection
 
@@ -113,7 +113,7 @@ def _register_listener(context, routing_key, callback):
             callback(channel, method, properties, body)
             channel.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
-            cherrypy.log.error('Error receiving message from queue {0}, exception: {1}'.format(routing_key, e))
+            framepy.log.error('[AMQP] Error receiving message from queue {0}, exception: {1}'.format(routing_key, e))
 
     def listener_thread():
         thread_local_channel.queue_declare(queue=routing_key, durable=True)
