@@ -73,7 +73,7 @@ def init_context(properties,
     loaded_properties = _load_properties(properties)
     loaded_properties = remote_configuration.load_remote_configuration(loaded_properties)
     _update_config(loaded_properties)
-    logs.setup_logging(log, loaded_properties)
+    logs.setup_logging(log)
     context = _create_context(loaded_properties, modules, kwargs)
 
     _after_setup(context, modules, kwargs, loaded_properties, beans_initializer)
