@@ -24,24 +24,9 @@ class Module(modules.Module):
     def before_setup(self, properties, arguments, beans):
         beans['_amqp_connection_cache'] = {}
 
-        def parse_address():
-            broker_address = properties['broker_address']
-            address_parts = broker_address.split(':')
-
-            if len(address_parts) == 1:
-                broker_host = broker_address
-                broker_port = DEFAULT_AMQP_PORT
-            elif len(address_parts) == 2:
-                broker_host = address_parts[0]
-                broker_port = int(address_parts[1])
-            else:
-                framepy.log.error('Invalid broker address!')
-                return None, None
-            return broker_host, broker_port
-
         broker_username = properties['broker_username']
         broker_password = properties['broker_password']
-        broker_host, broker_port = parse_address()
+        broker_host, broker_port = self._parse_address(properties)
 
         credentials = pika.PlainCredentials(broker_username, broker_password)
         beans['amqp_engine'] = pika.ConnectionParameters(broker_host, broker_port, '/', credentials)
@@ -54,6 +39,21 @@ class Module(modules.Module):
         for m in listeners_mappings:
             bean_initializer.initialize_bean('__listener_' + m.path, m.bean, context)
             _register_listener(context, m.path, m.bean.on_message)
+
+    def _parse_address(self, properties):
+        broker_address = properties['broker_address']
+        address_parts = broker_address.split(':')
+
+        if len(address_parts) == 1:
+            broker_host = broker_address
+            broker_port = DEFAULT_AMQP_PORT
+        elif len(address_parts) == 2:
+            broker_host = address_parts[0]
+            broker_port = int(address_parts[1])
+        else:
+            framepy.log.error('Invalid broker address!')
+            return None, None
+        return broker_host, broker_port
 
 
 class BaseListener(core.BaseBean):
