@@ -2,19 +2,17 @@ import framepy
 import pika
 import pika.exceptions
 import threading
-import os
 import time
 import core
 import modules
+import _thread_level_cache
 
 WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
 CONNECTION_RETRIES_COUNT = 3
 DEFAULT_AMQP_PORT = 5672
-PID_FIELD = 'pid'
 CHANNEL_FIELD = 'channel'
 
 annotated_listeners = {}
-channels_cache = threading.local()
 
 
 def listener(queue_name):
@@ -86,14 +84,8 @@ def send_message(context, routing_key, message, durable=True, exchange=''):
 
 
 def get_channel(context):
-    if not hasattr(channels_cache, PID_FIELD):
-        setattr(channels_cache, PID_FIELD, os.getpid())
-    if not hasattr(channels_cache, CHANNEL_FIELD) or getattr(channels_cache, PID_FIELD) != os.getpid():
-        channel = _establish_connection(context).channel()
-        setattr(channels_cache, CHANNEL_FIELD, channel)
-        return channel
-    else:
-        return getattr(channels_cache, CHANNEL_FIELD)
+    return _thread_level_cache.fetch_from_cache_or_create_new(CHANNEL_FIELD,
+                                                              lambda: _establish_connection(context).channel())
 
 
 def _establish_connection(context):

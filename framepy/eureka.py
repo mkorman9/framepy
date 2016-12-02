@@ -1,17 +1,14 @@
 import requests
 import json
-import os
 import framepy
 import threading
 import time
 import modules
+import _thread_level_cache
 
 from framepy import core
 
 SESSION_FIELD = 'session'
-PID_FIELD = 'pid'
-
-sessions_cache = threading.local()
 
 
 class Module(modules.Module):
@@ -98,11 +95,4 @@ def _register_heartbeat_service(remote_config_url, app_name, public_hostname):
 
 
 def _get_session_from_cache():
-    if not hasattr(sessions_cache, PID_FIELD):
-        setattr(sessions_cache, PID_FIELD, os.getpid())
-    if not hasattr(sessions_cache, SESSION_FIELD) or getattr(sessions_cache, PID_FIELD) != os.getpid():
-        channel = requests.session()
-        setattr(sessions_cache, SESSION_FIELD, channel)
-        return channel
-    else:
-        return getattr(sessions_cache, SESSION_FIELD)
+    return _thread_level_cache.fetch_from_cache_or_create_new(SESSION_FIELD, lambda: requests.session())
