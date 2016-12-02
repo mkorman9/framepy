@@ -1,4 +1,3 @@
-import ConfigParser
 import collections
 import logs
 import logging
@@ -6,7 +5,7 @@ import beans
 import cherrypy
 import pkgutil
 import web
-import remote_configuration
+import _configuration
 
 DEFAULT_HOST = '127.0.0.1'
 DEFAULT_PORT = 8000
@@ -28,22 +27,12 @@ class BaseBean(object):
         self.context = context
 
 
-def _update_config(load_properties):
+def _setup_server_config(load_properties):
     cherrypy.config.update({'server.socket_port': load_properties.get('server_port', DEFAULT_PORT),
                             'server.socket_host': load_properties.get('server_host', DEFAULT_HOST)})
 
 
-def _load_properties(file):
-    parser = ConfigParser.RawConfigParser()
-    try:
-        parser.readfp(open(file, 'r'))
-    except IOError:
-        cherrypy.log.error('Cannot open properties file {0}'.format(file))
-        raise IOError('Cannot open properties file {0}'.format(file))
-    return {key: value for (key, value) in parser.items('Properties')}
-
-
-def _create_context(loaded_properties, modules, kwargs):
+def _setup_modules(loaded_properties, modules, kwargs):
     beans = {}
     for module in modules:
         module.before_setup(loaded_properties, kwargs, beans)
@@ -57,25 +46,32 @@ def _after_setup(context, modules, kwargs, properties, beans_initializer):
         module.after_setup(properties, kwargs, context, beans_initializer)
 
 
+def _create_context(beans_initializer, kwargs, loaded_properties, modules):
+    context = _setup_modules(loaded_properties, modules, kwargs)
+    _after_setup(context, modules, kwargs, loaded_properties, beans_initializer)
+
+
+def _finish_system_initialization(loaded_properties):
+    _setup_server_config(loaded_properties)
+    logs.setup_logging(log)
+
+
 def scan_packages(packages_filter=lambda _: True):
     for modname in (modname for importer, modname, ispkg in pkgutil.walk_packages('.')
                     if '.' in modname and packages_filter(modname)):
         __import__(modname)
 
 
-def init_context(properties,
+def init_context(properties_file,
                  modules=(),
                  **kwargs):
     beans_initializer = beans.BeansInitializer()
     modules = (web.Module(),) + modules
 
-    loaded_properties = _load_properties(properties)
-    loaded_properties = remote_configuration.load_remote_configuration(loaded_properties)
-    _update_config(loaded_properties)
-    logs.setup_logging(log)
-    context = _create_context(loaded_properties, modules, kwargs)
+    properties = _configuration.create_configuration(properties_file)
 
-    _after_setup(context, modules, kwargs, loaded_properties, beans_initializer)
+    _finish_system_initialization(properties)
+    _create_context(beans_initializer, kwargs, properties, modules)
 
     return cherrypy.tree
 

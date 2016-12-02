@@ -1,8 +1,25 @@
 import requests
 import cherrypy
+import ConfigParser
+from itertools import chain
 
 
-def load_remote_configuration(properties):
+def create_configuration(file):
+    return _update_with_remote_configuration(_load_properties(file))
+
+
+def _load_properties(file):
+    parser = ConfigParser.RawConfigParser()
+    try:
+        parser.readfp(open(file, 'r'))
+    except IOError:
+        cherrypy.log.error('Cannot open properties file {0}'.format(file))
+        raise IOError('Cannot open properties file {0}'.format(file))
+    all_properties = [parser.items(section) for section in parser.sections()]
+    return {key: value for (key, value) in list(chain(*all_properties))}
+
+
+def _update_with_remote_configuration(properties):
     remote_config_url = properties.get('remote_config_url')
     app_name = properties.get('app_name')
 
