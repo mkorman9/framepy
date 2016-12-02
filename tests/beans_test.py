@@ -34,6 +34,16 @@ class BeansTest(unittest.TestCase):
         assert_that(all(bean.__class__ == StubB or bean.initialized_b == 'StubB' for bean in beans)).is_true()
         assert_that(all(bean.__class__ == StubC or bean.initialized_c == 'StubC' for bean in beans)).is_true()
 
+    def test_exception_should_be_thrown_when_bean_cannot_be_initialized(self):
+        # given
+        framepy.beans.annotated_beans = {'invalidBean': StubThrowingExceptionOnInitialize}
+        beans_initializer = framepy.beans.BeansInitializer()
+        context = mock.MagicMock()
+
+        # when then
+        with self.assertRaises(framepy.beans.BeanInitializationException):
+            beans_initializer.initialize_all(context)
+
 
 class BaseBeanStub(framepy.BaseBean):
     def initialize(self, context):
@@ -60,3 +70,9 @@ class StubB(BaseBeanStub):
 
 class StubC(BaseBeanStub):
     pass
+
+
+class StubThrowingExceptionOnInitialize(BaseBeanStub):
+    def initialize(self, context):
+        super(StubThrowingExceptionOnInitialize, self).initialize(context)
+        raise Exception()
