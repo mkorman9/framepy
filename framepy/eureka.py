@@ -1,12 +1,17 @@
 import requests
 import json
-
-from framepy import core
-
+import os
 import framepy
 import threading
 import time
 import modules
+
+from framepy import core
+
+SESSION_FIELD = 'session'
+PID_FIELD = 'pid'
+
+sessions_cache = threading.local()
 
 
 class Module(modules.Module):
@@ -39,7 +44,7 @@ class Module(modules.Module):
 
 
 def list_instances(context, service_name):
-    response = requests.get(context._eureka_url + '/apps/' + service_name, headers={'accept': 'application/json'})
+    response = _get_session_from_cache().get(context._eureka_url + '/apps/' + service_name, headers={'accept': 'application/json'})
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception('Cannot retrieve instances of service ' + service_name)
 
@@ -66,7 +71,7 @@ def _register_instance(eureka_url, app_name, hostname, properties):
     }
 
     try:
-        response = requests.post(eureka_url + '/apps/' + app_name, json.dumps(instance_data),
+        response = _get_session_from_cache().post(eureka_url + '/apps/' + app_name, json.dumps(instance_data),
                                  headers={'Content-Type': 'application/json'})
         if response.status_code < 200 or response.status_code >= 300:
             framepy.log.error('[Eureka] Cannot register instance on server! Status code {0}'.format(response.status_code))
@@ -75,7 +80,7 @@ def _register_instance(eureka_url, app_name, hostname, properties):
 
 
 def _send_heartbeat(eureka_url, app_name, hostname):
-    response = requests.put(eureka_url + '/apps/' + app_name + '/' + hostname,
+    response = _get_session_from_cache().put(eureka_url + '/apps/' + app_name + '/' + hostname,
                             headers={'Content-Type': 'application/json'})
     if response.status_code < 200 or response.status_code >= 300:
         framepy.log.error('[Eureka] Sending heartbeat to cluster failed! Status code {0}'.format(response.status_code))
@@ -90,3 +95,14 @@ def _register_heartbeat_service(remote_config_url, app_name, public_hostname):
     thread = threading.Thread(target=heartbeat_sending_thread)
     thread.daemon = True
     thread.start()
+
+
+def _get_session_from_cache():
+    if not hasattr(sessions_cache, PID_FIELD):
+        setattr(sessions_cache, PID_FIELD, os.getpid())
+    if not hasattr(sessions_cache, SESSION_FIELD) or getattr(sessions_cache, PID_FIELD) != os.getpid():
+        channel = requests.session()
+        setattr(sessions_cache, SESSION_FIELD, channel)
+        return channel
+    else:
+        return getattr(sessions_cache, SESSION_FIELD)

@@ -8,7 +8,6 @@ import pkgutil
 import web
 import remote_configuration
 
-
 DEFAULT_HOST = '127.0.0.1'
 DEFAULT_PORT = 8000
 Mapping = collections.namedtuple('Mapping', ['bean', 'path'])
