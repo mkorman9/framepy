@@ -11,10 +11,10 @@ WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
 CONNECTION_RETRIES_COUNT = 3
 DEFAULT_AMQP_PORT = 5672
 PID_FIELD = 'pid'
-CONNECTION_FIELD = 'connection'
+CHANNEL_FIELD = 'channel'
 
 annotated_listeners = {}
-connections_cache = threading.local()
+channels_cache = threading.local()
 
 
 def listener(queue_name):
@@ -27,8 +27,6 @@ def listener(queue_name):
 class Module(modules.Module):
     def before_setup(self, properties, arguments, beans):
         self._map_listeners_from_arguments(arguments)
-
-        beans['_amqp_connection_cache'] = {}
 
         broker_username = properties['broker_username']
         broker_password = properties['broker_password']
@@ -76,26 +74,26 @@ class ConnectionError(Exception):
     pass
 
 
-def get_connection(context):
-    if not hasattr(connections_cache, PID_FIELD):
-        setattr(connections_cache, PID_FIELD, os.getpid())
-    if not hasattr(connections_cache, CONNECTION_FIELD) or getattr(connections_cache, PID_FIELD) != os.getpid():
-        connection = _establish_connection(context)
-        setattr(connections_cache, CONNECTION_FIELD, connection)
-        return connection
-    else:
-        return getattr(connections_cache, CONNECTION_FIELD)
-
-
 def send_message(context, routing_key, message, durable=True, exchange=''):
-    sending_connection = get_connection(context).channel()
-    sending_connection.queue_declare(queue=routing_key, durable=durable)
-    sending_connection.basic_publish(exchange=exchange,
-                                     routing_key=routing_key,
-                                     body=message,
-                                     properties=pika.BasicProperties(
-                                         delivery_mode=2,
-                                     ))
+    sending_channel = get_channel(context)
+    sending_channel.queue_declare(queue=routing_key, durable=durable)
+    sending_channel.basic_publish(exchange=exchange,
+                                  routing_key=routing_key,
+                                  body=message,
+                                  properties=pika.BasicProperties(
+                                      delivery_mode=2,
+                                  ))
+
+
+def get_channel(context):
+    if not hasattr(channels_cache, PID_FIELD):
+        setattr(channels_cache, PID_FIELD, os.getpid())
+    if not hasattr(channels_cache, CHANNEL_FIELD) or getattr(channels_cache, PID_FIELD) != os.getpid():
+        channel = _establish_connection(context).channel()
+        setattr(channels_cache, CHANNEL_FIELD, channel)
+        return channel
+    else:
+        return getattr(channels_cache, CHANNEL_FIELD)
 
 
 def _establish_connection(context):
@@ -118,7 +116,7 @@ def _establish_connection(context):
 
 
 def _register_listener(context, routing_key, callback):
-    thread_local_channel = get_connection(context).channel()
+    thread_local_channel = get_channel(context)
 
     def receive_action(channel, method, properties, body):
         try:
