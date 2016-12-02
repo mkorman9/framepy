@@ -22,6 +22,8 @@ def listener(queue_name):
 
 class Module(modules.Module):
     def before_setup(self, properties, arguments, beans):
+        self._map_listeners_from_arguments(arguments)
+
         beans['_amqp_connection_cache'] = {}
 
         broker_username = properties['broker_username']
@@ -39,6 +41,11 @@ class Module(modules.Module):
         for m in listeners_mappings:
             bean_initializer.initialize_bean('__listener_' + m.path, m.bean, context)
             _register_listener(context, m.path, m.bean.on_message)
+
+    def _map_listeners_from_arguments(self, arguments):
+        listeners = arguments.get('listeners') or []
+        for listener_class, path in listeners:
+            annotated_listeners[path] = listener_class
 
     def _parse_address(self, properties):
         broker_address = properties['broker_address']

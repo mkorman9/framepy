@@ -9,7 +9,7 @@ annotated_controllers = {}
 
 class Module(modules.Module):
     def before_setup(self, properties, arguments, beans):
-        pass
+        self._map_controllers_from_arguments(arguments)
 
     def after_setup(self, properties, arguments, context, beans_initializer):
         controllers_mappings = [core.Mapping(controller(), key) for key, controller in annotated_controllers.iteritems()]
@@ -17,6 +17,11 @@ class Module(modules.Module):
         for m in controllers_mappings:
             beans_initializer.initialize_bean('__controller_'.format(m.bean.__class__.__name__), m.bean, context)
             cherrypy.tree.mount(m.bean, m.path)
+
+    def _map_controllers_from_arguments(self, arguments):
+        controllers = arguments.get('controllers') or []
+        for controller_class, path in controllers:
+            annotated_controllers[path] = controller_class
 
 
 def controller(path):
