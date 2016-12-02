@@ -9,7 +9,7 @@ class MethodInspector(object):
         return len(self._args.args) > 1 or self._contains_varargs()
 
     def check_if_arguments_match_target_method(self, args, kwargs):
-        if len(args) + len(kwargs) != len(self._arguments_without_special_ones()):
+        if not self._contains_varargs() and (len(args) + len(kwargs) != len(self._arguments_without_special_ones())):
             raise ValueError('Provided arguments does not match target endpoint')
 
     def _arguments_without_special_ones(self):
