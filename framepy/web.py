@@ -1,8 +1,8 @@
 import json
 import cherrypy
-import inspect
 import core
 import modules
+import _method_inspection
 
 annotated_controllers = {}
 
@@ -179,33 +179,12 @@ class BaseController(core.BaseBean):
                   'show_mismatched_params': False,
                   'throw_errors': False}
 
-    def _set_bad_request_error(self):
-        cherrypy.response.status = 400
-        cherrypy.response.headers['Content-Type'] = 'application/json'
-
     @cherrypy.expose
     def default(self, *vpath, **params):
-        def find_handling_method():
-            return getattr(self, cherrypy.request.method, None)
-
-        def setup_default_response_header():
-            cherrypy.response.headers['Content-Type'] = 'application/json'
-
-        def dispatch_event(method):
-            if not method:
-                cherrypy.response.status = 404
-                return ResponseEntity(status='error', error="Not found")
-            method_args = inspect.getargspec(method)
-            if len(method_args.args) > 1 or method_args.varargs or method_args.keywords:
-                result = method(*vpath, **params)
-            else:
-                result = method()
-            return result
-
+        self._setup_default_response_header()
         try:
-            setup_default_response_header()
-            method = find_handling_method()
-            result = dispatch_event(method)
+            method = self._find_handling_method()
+            result = self._dispatch_event(method, vpath, params)
 
             if cherrypy.response.headers['Content-Type'] == 'application/json':
                 if result.status == 'error' and cherrypy.response.status != 404:
@@ -213,6 +192,33 @@ class BaseController(core.BaseBean):
                 return result.tojson()
             else:
                 return result
-        except ValueError:
+        except ValueError as e:
             self._set_bad_request_error()
+            core.log.warning(e)
             return ResponseEntity(status='error', error='Bad Request').tojson()
+
+    def _set_bad_request_error(self):
+        self._setup_default_response_header()
+        cherrypy.response.status = 400
+
+    def _setup_default_response_header(self):
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+
+    def _find_handling_method(self):
+        return getattr(self, cherrypy.request.method.upper(), None)
+
+    def _call_target_method_with_matching_list_of_arguments(self, method, params, vpath):
+        method_inspector = _method_inspection.MethodInspector(method)
+        if method_inspector.contains_args():
+            method_inspector.check_if_arguments_match_target_method(params, vpath)
+            result = method(*vpath, **params)
+        else:
+            result = method()
+        return result
+
+    def _dispatch_event(self, method, vpath, params):
+        if not method:
+            cherrypy.response.status = 404
+            return ResponseEntity(status='error', error="Not found")
+
+        return self._call_target_method_with_matching_list_of_arguments(method, params, vpath)
