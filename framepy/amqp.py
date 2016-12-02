@@ -2,6 +2,7 @@ import framepy
 import pika
 import pika.exceptions
 import threading
+import os
 import time
 import core
 import modules
@@ -9,8 +10,11 @@ import modules
 WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
 CONNECTION_RETRIES_COUNT = 3
 DEFAULT_AMQP_PORT = 5672
+PID_FIELD = 'pid'
+CONNECTION_FIELD = 'connection'
 
 annotated_listeners = {}
+connections_cache = threading.local()
 
 
 def listener(queue_name):
@@ -73,13 +77,14 @@ class ConnectionError(Exception):
 
 
 def get_connection(context):
-    connection_identifier = threading.currentThread().name
-    if connection_identifier in context._amqp_connection_cache:
-        return context._amqp_connection_cache[connection_identifier]
+    if not hasattr(connections_cache, PID_FIELD):
+        setattr(connections_cache, PID_FIELD, os.getpid())
+    if not hasattr(connections_cache, CONNECTION_FIELD) or getattr(connections_cache, PID_FIELD) != os.getpid():
+        connection = _establish_connection(context)
+        setattr(connections_cache, CONNECTION_FIELD, connection)
+        return connection
     else:
-        new_connection = _establish_connection(context)
-        context._amqp_connection_cache[connection_identifier] = new_connection
-        return new_connection
+        return getattr(connections_cache, CONNECTION_FIELD)
 
 
 def send_message(context, routing_key, message, durable=True, exchange=''):
