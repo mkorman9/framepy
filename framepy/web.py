@@ -106,37 +106,51 @@ class PayloadBinder(object):
         elif value is None and not constraint.required:
             value = constraint.default
 
-        if value is not None:
-            try:
-                type_resolver = self.types_resolvers.get(constraint.type)
-                if type_resolver is not None:
-                    type_resolver(value, constraint)
-                else:
-                    raise UnknownFieldType('Unknown field type {0}'.format(constraint.type))
-            except ValueError:
-                self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
+        if value is None:
+            return None
+
+        try:
+            self._resolve_field(constraint, value)
+        except ValueError:
+            self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
         return value
 
+    def _resolve_field(self, constraint, value):
+        type_resolver = self.types_resolvers.get(constraint.type)
+        if type_resolver is not None:
+            type_resolver(value, constraint)
+        else:
+            raise UnknownFieldType('Unknown field type {0}'.format(constraint.type))
+
     def _resolve_int(self, value, constraint):
-        int(value)
-        if value > constraint.max:
-            self.errors.append({'field': constraint.name, 'error': 'MAX'})
-        if value < constraint.min:
-            self.errors.append({'field': constraint.name, 'error': 'MIN'})
+        self._check_type_and_ranges(value, constraint,
+                                    type_conversion_procedure=lambda val: int(val),
+                                    size_check_procedure=lambda val: val,
+                                    max_error_label='MAX',
+                                    min_error_label='MIN')
 
     def _resolve_float(self, value, constraint):
-        float(value)
-        if value > constraint.max:
-            self.errors.append({'field': constraint.name, 'error': 'MAX'})
-        if value < constraint.min:
-            self.errors.append({'field': constraint.name, 'error': 'MIN'})
+        self._check_type_and_ranges(value, constraint,
+                                    type_conversion_procedure=lambda val: float(val),
+                                    size_check_procedure=lambda val: val,
+                                    max_error_label='MAX',
+                                    min_error_label='MIN')
 
     def _resolve_string(self, value, constraint):
-        str(value)
-        if len(value) > constraint.max:
-            self.errors.append({'field': constraint.name, 'error': 'MAX_LENGTH'})
-        if len(value) < constraint.min:
-            self.errors.append({'field': constraint.name, 'error': 'MIN_LENGTH'})
+        self._check_type_and_ranges(value, constraint,
+                                    type_conversion_procedure=lambda val: str(val),
+                                    size_check_procedure=lambda val: len(val),
+                                    max_error_label='MAX_LENGTH',
+                                    min_error_label='MIN_LENGTH')
+
+    def _check_type_and_ranges(self, value, constraint,
+                               type_conversion_procedure, size_check_procedure,
+                               max_error_label, min_error_label):
+        type_conversion_procedure(value)
+        if size_check_procedure(value) > constraint.max:
+            self.errors.append({'field': constraint.name, 'error': max_error_label})
+        if size_check_procedure(value) < constraint.min:
+            self.errors.append({'field': constraint.name, 'error': min_error_label})
 
 
 class UnknownFieldType(Exception):
