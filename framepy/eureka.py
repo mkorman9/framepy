@@ -5,6 +5,7 @@ import threading
 import time
 import modules
 import _thread_level_cache
+import _utils
 
 from framepy import core
 
@@ -27,9 +28,7 @@ class Module(modules.Module):
             framepy.log.error('[Eureka] Missing public_hostname! Skipping registration in eureka cluster')
             return
 
-        if not remote_config_url.endswith('/'):
-            remote_config_url += '/'
-        remote_config_url += 'eureka'
+        remote_config_url = _utils.normalize_url(remote_config_url) + 'eureka'
 
         _register_instance(remote_config_url, app_name, public_hostname, properties)
         _register_heartbeat_service(remote_config_url, app_name, public_hostname)
@@ -70,7 +69,7 @@ def _register_instance(eureka_url, app_name, hostname, properties):
     try:
         response = _get_session_from_cache().post(eureka_url + '/apps/' + app_name, json.dumps(instance_data),
                                  headers={'Content-Type': 'application/json'})
-        if response.status_code < 200 or response.status_code >= 300:
+        if _response_status_not_ok(response):
             framepy.log.error('[Eureka] Cannot register instance on server! Status code {0}'.format(response.status_code))
     except requests.exceptions.ConnectionError:
         framepy.log.error('[Eureka] Cannot connect to server!')
@@ -79,8 +78,12 @@ def _register_instance(eureka_url, app_name, hostname, properties):
 def _send_heartbeat(eureka_url, app_name, hostname):
     response = _get_session_from_cache().put(eureka_url + '/apps/' + app_name + '/' + hostname,
                             headers={'Content-Type': 'application/json'})
-    if response.status_code < 200 or response.status_code >= 300:
+    if _response_status_not_ok(response):
         framepy.log.error('[Eureka] Sending heartbeat to cluster failed! Status code {0}'.format(response.status_code))
+
+
+def _response_status_not_ok(response):
+    return response.status_code < 200 or response.status_code >= 300
 
 
 def _register_heartbeat_service(remote_config_url, app_name, public_hostname):

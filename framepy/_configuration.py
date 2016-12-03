@@ -2,6 +2,7 @@ import requests
 import cherrypy
 import ConfigParser
 from itertools import chain
+import _utils
 
 
 def create_configuration(file):
@@ -23,15 +24,14 @@ def _update_with_remote_configuration(properties):
     remote_config_url = properties.get('remote_config_url')
     app_name = properties.get('app_name')
 
-    if remote_config_url is None or not remote_config_url:
+    if not remote_config_url:
         cherrypy.log.error('Remote config URL not present. Skipping.')
         return properties
     if app_name is None or not app_name:
         cherrypy.log.error('Remote config URL is present but application name was not specified!')
         return properties
 
-    if not remote_config_url.endswith('/'):
-        remote_config_url += '/'
+    remote_config_url = _utils.normalize_url(remote_config_url)
 
     remote_properties = {}
     try:
