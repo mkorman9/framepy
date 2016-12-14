@@ -42,11 +42,11 @@ class ResponseEntity(object):
             return o.__dict__
     _json_encoder = JsonEncoder()
 
-    def __init__(self, status='ok', data='', error=''):
+    def __init__(self, status='ok', data=None, error=None):
         self.status = status
-        if data != '':
+        if data is not None:
             self.data = data
-        if error != '':
+        if error is not None:
             self.error = error
 
     def tojson(self):
