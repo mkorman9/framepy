@@ -1,4 +1,4 @@
-import db
+from framepy import db
 
 
 def mock_logic(logic_class, context):

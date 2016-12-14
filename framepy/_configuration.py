@@ -1,8 +1,8 @@
 import requests
 import cherrypy
-import ConfigParser
+import configparser
 from itertools import chain
-import _utils
+from framepy import _utils
 
 
 def create_configuration(file):
@@ -10,9 +10,9 @@ def create_configuration(file):
 
 
 def _load_properties(file):
-    parser = ConfigParser.RawConfigParser()
+    parser = configparser.RawConfigParser()
     try:
-        parser.readfp(open(file, 'r'))
+        parser.read_file(open(file, 'r'))
     except IOError:
         cherrypy.log.error('Cannot open properties file {0}'.format(file))
         raise IOError('Cannot open properties file {0}'.format(file))

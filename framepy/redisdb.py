@@ -1,6 +1,6 @@
 import redis
 import framepy
-import modules
+from framepy import modules
 
 DEFAULT_REDIS_PORT = 6379
 

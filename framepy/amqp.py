@@ -3,9 +3,9 @@ import pika
 import pika.exceptions
 import threading
 import time
-import core
-import modules
-import _thread_level_cache
+from framepy import core
+from framepy import modules
+from framepy import _thread_level_cache
 
 WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
 CONNECTION_RETRIES_COUNT = 3
@@ -35,7 +35,7 @@ class Module(modules.Module):
 
     def after_setup(self, properties, arguments, context, bean_initializer):
         listeners_mappings = arguments.get('listeners_mappings', [])
-        for key, bean in annotated_listeners.iteritems():
+        for key, bean in annotated_listeners.items():
             listeners_mappings.append(core.Mapping(bean(), key))
 
         for m in listeners_mappings:

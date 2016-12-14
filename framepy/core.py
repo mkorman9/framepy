@@ -1,11 +1,11 @@
 import collections
-import logs
+from framepy import logs
+from framepy import beans
+from framepy import web
+from framepy import _configuration
 import logging
-import beans
 import cherrypy
 import pkgutil
-import web
-import _configuration
 
 DEFAULT_HOST = '127.0.0.1'
 DEFAULT_PORT = 8000

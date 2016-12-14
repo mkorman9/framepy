@@ -3,7 +3,7 @@ import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 import framepy
 import contextlib
-import modules
+from framepy import modules
 
 Table = sqlalchemy.ext.declarative.declarative_base()
 

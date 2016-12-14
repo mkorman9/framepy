@@ -3,11 +3,10 @@ import json
 import framepy
 import threading
 import time
-import modules
-import _thread_level_cache
-import _utils
-
 from framepy import core
+from framepy import modules
+from framepy import _thread_level_cache
+from framepy import _utils
 
 SESSION_FIELD = 'session'
 
