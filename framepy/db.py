@@ -55,4 +55,6 @@ class GenericRepository(object):
 
 
 class DataAccessException(Exception):
-    pass
+    def __init__(self, message):
+        super(DataAccessException, self).__init__(message)
+        self.message = message

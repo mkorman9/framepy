@@ -3,7 +3,7 @@ import logging
 from cherrypy._cplogging import LogManager
 
 ERROR_LOG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s %(filename)s:%(funcName)s: %(message)s')
-ACCESS_LOG_FORMATTER = '%(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+ACCESS_LOG_FORMATTER = '{h} {l} {u} "{r}" {s} {b} "{f}" "{a}"'
 
 
 def setup_logging(logger):
