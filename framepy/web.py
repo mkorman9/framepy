@@ -1,9 +1,10 @@
 import json
 import cherrypy
-import core
-import modules
-import _method_inspection
+from framepy import core
+from framepy import modules
+from framepy import _method_inspection
 
+DEFAULT_ENCODING = 'utf-8'
 annotated_controllers = {}
 
 
@@ -12,7 +13,7 @@ class Module(modules.Module):
         self._map_controllers_from_arguments(arguments)
 
     def after_setup(self, properties, arguments, context, beans_initializer):
-        controllers_mappings = [core.Mapping(controller(), key) for key, controller in annotated_controllers.iteritems()]
+        controllers_mappings = [core.Mapping(controller(), key) for key, controller in annotated_controllers.items()]
 
         for m in controllers_mappings:
             beans_initializer.initialize_bean('__controller_'.format(m.bean.__class__.__name__), m.bean, context)
@@ -42,15 +43,15 @@ class ResponseEntity(object):
             return o.__dict__
     _json_encoder = JsonEncoder()
 
-    def __init__(self, status='ok', data='', error=''):
+    def __init__(self, status='ok', data=None, error=None):
         self.status = status
-        if data != '':
+        if data is not None:
             self.data = data
-        if error != '':
+        if error is not None:
             self.error = error
 
     def tojson(self):
-        return ResponseEntity._json_encoder.encode(self)
+        return ResponseEntity._json_encoder.encode(self).encode(DEFAULT_ENCODING)
 
 
 class PayloadConstraint(object):
@@ -161,8 +162,9 @@ def payload(payload_template):
     def payload_retriever(func):
         def wrapped(instance, *args, **kwargs):
             try:
-                payload_json = json.load(cherrypy.request.body)
-            except ValueError:
+                body = cherrypy.request.body.read().decode(DEFAULT_ENCODING)
+                payload_json = json.loads(body)
+            except ValueError as e:
                 return ResponseEntity(status='error', error='Cannot parse request body')
 
             payload_binder = PayloadBinder(payload_json, payload_template)

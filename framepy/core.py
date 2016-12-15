@@ -1,11 +1,11 @@
 import collections
-import logs
+from framepy import logs
+from framepy import beans
+from framepy import web
+from framepy import _configuration
 import logging
-import beans
 import cherrypy
 import pkgutil
-import web
-import _configuration
 
 DEFAULT_HOST = '127.0.0.1'
 DEFAULT_PORT = 8000
@@ -28,8 +28,14 @@ class BaseBean(object):
 
 
 def _setup_server_config(load_properties):
-    cherrypy.config.update({'server.socket_port': load_properties.get('server_port', DEFAULT_PORT),
-                            'server.socket_host': load_properties.get('server_host', DEFAULT_HOST)})
+    cherrypy.config.update(
+        {
+            'server.socket_port': load_properties.get('server_port', DEFAULT_PORT),
+            'server.socket_host': load_properties.get('server_host', DEFAULT_HOST),
+            'tools.encode.on': True,
+            'tools.encode.encoding': 'utf-8'
+        }
+    )
 
 
 def _setup_modules(loaded_properties, modules, kwargs):

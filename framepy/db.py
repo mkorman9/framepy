@@ -3,7 +3,7 @@ import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 import framepy
 import contextlib
-import modules
+from framepy import modules
 
 Table = sqlalchemy.ext.declarative.declarative_base()
 
@@ -55,4 +55,6 @@ class GenericRepository(object):
 
 
 class DataAccessException(Exception):
-    pass
+    def __init__(self, message):
+        super(DataAccessException, self).__init__(message)
+        self.message = message
