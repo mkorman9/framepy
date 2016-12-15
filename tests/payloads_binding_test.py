@@ -188,8 +188,9 @@ class PayloadBindingTest(unittest.TestCase):
 
         # then
         assert_that(binder.has_errors()).is_true()
-        assert_that(len(binder.errors)).is_equal_to(2)
-        assert_that(binder.errors[0]['field'] == 'name' or binder.errors[1]['field'] == 'name').is_true()
-        assert_that(binder.errors[0]['field'] == 'name' or binder.errors[1]['field'] == 'age').is_true()
-        assert_that(binder.errors[0]['error'] == 'MIN_LENGTH' or binder.errors[1]['error'] == 'MIN_LENGTH').is_true()
-        assert_that(binder.errors[0]['error'] == 'MIN' or binder.errors[1]['error'] == 'MIN').is_true()
+        errors = sorted(binder.errors, key=lambda element: element['field'])
+        assert_that(len(errors)).is_equal_to(2)
+        assert_that(errors[0]['field']).is_equal_to('age')
+        assert_that(errors[0]['error']).is_equal_to('MIN')
+        assert_that(errors[1]['field']).is_equal_to('name')
+        assert_that(errors[1]['error']).is_equal_to('MIN_LENGTH')
