@@ -4,6 +4,7 @@ from framepy import core
 from framepy import modules
 from framepy import _method_inspection
 
+DEFAULT_ENCODING = 'utf-8'
 annotated_controllers = {}
 
 
@@ -50,7 +51,7 @@ class ResponseEntity(object):
             self.error = error
 
     def tojson(self):
-        return ResponseEntity._json_encoder.encode(self)
+        return ResponseEntity._json_encoder.encode(self).encode(DEFAULT_ENCODING)
 
 
 class PayloadConstraint(object):
@@ -161,8 +162,9 @@ def payload(payload_template):
     def payload_retriever(func):
         def wrapped(instance, *args, **kwargs):
             try:
-                payload_json = json.load(cherrypy.request.body)
-            except ValueError:
+                body = cherrypy.request.body.read().decode(DEFAULT_ENCODING)
+                payload_json = json.loads(body)
+            except ValueError as e:
                 return ResponseEntity(status='error', error='Cannot parse request body')
 
             payload_binder = PayloadBinder(payload_json, payload_template)

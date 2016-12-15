@@ -28,8 +28,14 @@ class BaseBean(object):
 
 
 def _setup_server_config(load_properties):
-    cherrypy.config.update({'server.socket_port': load_properties.get('server_port', DEFAULT_PORT),
-                            'server.socket_host': load_properties.get('server_host', DEFAULT_HOST)})
+    cherrypy.config.update(
+        {
+            'server.socket_port': load_properties.get('server_port', DEFAULT_PORT),
+            'server.socket_host': load_properties.get('server_host', DEFAULT_HOST),
+            'tools.encode.on': True,
+            'tools.encode.encoding': 'utf-8'
+        }
+    )
 
 
 def _setup_modules(loaded_properties, modules, kwargs):
