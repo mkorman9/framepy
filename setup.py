@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     requirements = f.readlines()
 
-version = '3.56'
+version = '3.57'
 
 setup(
     name='framepy',
