@@ -223,6 +223,13 @@ class BaseController(core.BaseBean):
     def _find_handling_method(self):
         return getattr(self, cherrypy.request.method.upper(), None)
 
+    def _dispatch_event(self, method, vpath, params):
+        if not method:
+            cherrypy.response.status = 404
+            return ResponseEntity(status='error', error="Not found")
+
+        return self._call_target_method_with_matching_list_of_arguments(method, params, vpath)
+
     def _call_target_method_with_matching_list_of_arguments(self, method, params, vpath):
         method_inspector = _method_inspection.MethodInspector(method)
         if method_inspector.contains_args():
@@ -231,10 +238,3 @@ class BaseController(core.BaseBean):
         else:
             result = method()
         return result
-
-    def _dispatch_event(self, method, vpath, params):
-        if not method:
-            cherrypy.response.status = 404
-            return ResponseEntity(status='error', error="Not found")
-
-        return self._call_target_method_with_matching_list_of_arguments(method, params, vpath)
