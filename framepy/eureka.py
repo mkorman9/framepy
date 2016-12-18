@@ -13,21 +13,23 @@ SESSION_FIELD = 'session'
 
 class Module(modules.Module):
     def before_setup(self, properties, arguments, beans):
-        app_name = properties.get('app_name')
-        remote_config_url = properties.get('remote_config_url')
-        public_hostname = properties.get('public_hostname')
+        app_name = _utils.resolve_property_or_report_error(
+            properties=properties,
+            key='app_name',
+            log_message='[Eureka] Missing app_name! Skipping registration in eureka cluster'
+        )
+        remote_config_url = _utils.resolve_property_or_report_error(
+            properties=properties,
+            key='remote_config_url',
+            log_message='[Eureka] Missing remote_config_url! Skipping registration in eureka cluster'
+        )
+        public_hostname = _utils.resolve_property_or_report_error(
+            properties=properties,
+            key='public_hostname',
+            log_message='[Eureka] Missing public_hostname! Skipping registration in eureka cluster'
+        )
 
-        if app_name is None or not app_name:
-            framepy.log.error('[Eureka] Missing app_name! Skipping registration in eureka cluster')
-            return
-        if remote_config_url is None or not remote_config_url:
-            framepy.log.error('[Eureka] Missing remote_config_url! Skipping registration in eureka cluster')
-            return
-        if public_hostname is None or not public_hostname:
-            framepy.log.error('[Eureka] Missing public_hostname! Skipping registration in eureka cluster')
-            return
-
-        remote_config_url = _utils.normalize_url(remote_config_url) + 'eureka'
+        remote_config_url = self._build_eureka_url(remote_config_url)
 
         _register_instance(remote_config_url, app_name, public_hostname, properties)
         _register_heartbeat_service(remote_config_url, app_name, public_hostname)
@@ -36,6 +38,10 @@ class Module(modules.Module):
 
     def after_setup(self, properties, arguments, context, beans_initializer):
         pass
+
+    @staticmethod
+    def _build_eureka_url(remote_config_url):
+        return _utils.normalize_url(remote_config_url) + 'eureka'
 
 
 def list_instances(context, service_name):

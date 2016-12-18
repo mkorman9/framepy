@@ -1,22 +1,22 @@
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
-import framepy
 import contextlib
 from framepy import modules
+from framepy import _utils
 
 Table = sqlalchemy.ext.declarative.declarative_base()
 
 
 class Module(modules.Module):
     def before_setup(self, properties, arguments, beans):
-        database_url = properties.get('database_url')
+        database_url = _utils.resolve_property_or_report_error(
+            properties=properties,
+            key='database_url',
+            log_message='[DB] No database_url found in properties. Skipping ORM engine creation'
+        )
 
-        if database_url is None or not database_url:
-            framepy.log.error('[DB] No database_url found in properties. Skipping ORM engine creation.')
-            return None
-
-        # mysql+pymysql://{username}:{password}@url
+        # typically mysql+pymysql://{username}:{password}@url
         beans['db_engine'] = sqlalchemy.create_engine(database_url)
         beans['_session_maker'] = sqlalchemy.orm.sessionmaker(bind=beans['db_engine'])
 

@@ -6,6 +6,7 @@ import time
 from framepy import core
 from framepy import modules
 from framepy import _thread_level_cache
+from framepy import _utils
 
 WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
 CONNECTION_RETRIES_COUNT = 3
@@ -26,9 +27,23 @@ class Module(modules.Module):
     def before_setup(self, properties, arguments, beans):
         self._map_listeners_from_arguments(arguments)
 
-        broker_username = properties['broker_username']
-        broker_password = properties['broker_password']
-        broker_host, broker_port = self._parse_address(properties)
+        broker_address = _utils.resolve_property_or_report_error(
+            properties=properties,
+            key='broker_address',
+            log_message='[AMQP] broker_address not found in properties!'
+        )
+        broker_username = _utils.resolve_property_or_report_error(
+            properties=properties,
+            key='broker_username',
+            log_message='[AMQP] broker_username not found in properties!'
+        )
+        broker_password = _utils.resolve_property_or_report_error(
+            properties=properties,
+            key='broker_password',
+            log_message='[AMQP] broker_password not found in properties!'
+        )
+
+        broker_host, broker_port = self._parse_address(broker_address)
 
         credentials = pika.PlainCredentials(broker_username, broker_password)
         beans['amqp_engine'] = pika.ConnectionParameters(broker_host, broker_port, '/', credentials)
@@ -47,8 +62,7 @@ class Module(modules.Module):
         for listener_class, path in listeners:
             annotated_listeners[path] = listener_class
 
-    def _parse_address(self, properties):
-        broker_address = properties['broker_address']
+    def _parse_address(self, broker_address):
         address_parts = broker_address.split(':')
 
         if len(address_parts) == 1:
