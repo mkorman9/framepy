@@ -3,7 +3,6 @@ PyMySQL
 SQLAlchemy
 pika
 redis
-unittest2
 assertpy
 mock
 requests
