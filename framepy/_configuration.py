@@ -12,7 +12,8 @@ def create_configuration(file):
 def _load_properties(file):
     parser = configparser.RawConfigParser()
     try:
-        parser.read_file(open(file, 'r'))
+        with open(file, 'r') as f:
+            parser.read_file(f)
     except IOError:
         cherrypy.log.error('Cannot open properties file {0}'.format(file))
         raise IOError('Cannot open properties file {0}'.format(file))
