@@ -30,7 +30,8 @@ class Module(modules.Module):
         broker_address = _utils.resolve_property_or_report_error(
             properties=properties,
             key='broker_address',
-            log_message='[AMQP] broker_address not found in properties!'
+            log_message='[AMQP] broker_address not found in properties!',
+            default_value=''
         )
         broker_username = _utils.resolve_property_or_report_error(
             properties=properties,
