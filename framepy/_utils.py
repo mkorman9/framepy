@@ -6,7 +6,9 @@ def normalize_url(url):
     :type url: str
     :rtype: str
     """
-    if url and not url.endswith('/'):
+    if not url:
+        return ''
+    if not url.endswith('/'):
         url += '/'
     return url
 
