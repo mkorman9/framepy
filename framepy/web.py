@@ -168,7 +168,9 @@ def payload(payload_template):
                 return ResponseEntity(status='error', error='Cannot parse request body')
 
             payload_binder = PayloadBinder(payload_json, payload_template)
-            kwargs.update({'payload': payload_binder})
+            if payload_binder.has_errors():
+                return ResponseEntity(status='error', error=payload_binder.errors)
+            kwargs.update({'payload': payload_binder.entity})
             return func(instance, *args, **kwargs)
         return wrapped
     return payload_retriever
