@@ -1,5 +1,7 @@
 from . import core
 
+DEFAULT_URL = 'http://localhost'
+
 
 def normalize_url(url):
     """
@@ -7,7 +9,7 @@ def normalize_url(url):
     :rtype: str
     """
     if not url:
-        return ''
+        return DEFAULT_URL
     if not url.endswith('/'):
         url += '/'
     return url
