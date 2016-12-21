@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     requirements = f.readlines()
 
-version = '0.0.dev'
+version = 'dynamic-dev'
 
 setup(
     name='framepy',
