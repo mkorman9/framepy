@@ -161,6 +161,8 @@ class UnknownFieldType(Exception):
 
 def payload(argument_name, template):
     def payload_retriever(func):
+        func._payload_argument_name = argument_name
+
         @functools.wraps(func)
         def wrapped(instance, *args, **kwargs):
             try:
@@ -172,6 +174,7 @@ def payload(argument_name, template):
             payload_binder = PayloadBinder(payload_json, template)
             if payload_binder.has_errors():
                 return ResponseEntity(status='error', error=payload_binder.errors)
+
             kwargs.update({argument_name: payload_binder.entity})
             return func(instance, *args, **kwargs)
         return wrapped

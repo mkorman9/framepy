@@ -4,6 +4,10 @@ import inspect
 class MethodInspector(object):
     def __init__(self, method):
         self._args = inspect.signature(method).parameters
+        self._special_attribute_names = []
+
+        if hasattr(method, '_payload_argument_name'):
+            self._special_attribute_names.append(method._payload_argument_name)
 
     def contains_args(self):
         return len(self._args) > 0
@@ -13,7 +17,7 @@ class MethodInspector(object):
             raise ValueError('Provided arguments does not match target endpoint')
 
     def _arguments_without_special_ones(self):
-        return list(filter(lambda arg: arg not in ['self', 'payload'], self._args.keys()))
+        return list(filter(lambda arg: arg not in ['self'] + self._special_attribute_names, self._args.keys()))
 
     def _contains_varargs(self):
         for arg_name in self._args:
