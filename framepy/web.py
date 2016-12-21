@@ -159,7 +159,7 @@ class UnknownFieldType(Exception):
     pass
 
 
-def payload(payload_template):
+def payload(argument_name, template):
     def payload_retriever(func):
         @functools.wraps(func)
         def wrapped(instance, *args, **kwargs):
@@ -169,10 +169,10 @@ def payload(payload_template):
             except ValueError as e:
                 return ResponseEntity(status='error', error='Cannot parse request body')
 
-            payload_binder = PayloadBinder(payload_json, payload_template)
+            payload_binder = PayloadBinder(payload_json, template)
             if payload_binder.has_errors():
                 return ResponseEntity(status='error', error=payload_binder.errors)
-            kwargs.update({'payload': payload_binder.entity})
+            kwargs.update({argument_name: payload_binder.entity})
             return func(instance, *args, **kwargs)
         return wrapped
     return payload_retriever
