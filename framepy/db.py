@@ -44,6 +44,9 @@ class GenericRepository(object):
     def all(self, transaction):
         return transaction.query(self.__basetable__).all()
 
+    def find(self, transaction, condition):
+        return transaction.query(self.__basetable__).filter(condition).all()
+
     def one(self, transaction, id):
         return transaction.query(self.__basetable__).filter(self.__basetable__.id == id).one()
 
