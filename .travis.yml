@@ -10,7 +10,7 @@ env:
 install:
   - export VERSION="${VERSION_BASE}.${TRAVIS_BUILD_NUMBER}"
   - if [ "$TRAVIS_TAG" != '' ]; then export VERSION="$TRAVIS_TAG"; fi
-  - find ${TRAVIS_BUILD_DIR} -type f -print0 | xargs -0 sed -i "s/0.0.dev/${VERSION}/g"
+  - sed -i -e "s/dynamic-dev/${VERSION}/g" setup.py
   - pip install .
 
 script: nosetests
