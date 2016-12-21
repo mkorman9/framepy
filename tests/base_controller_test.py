@@ -107,16 +107,19 @@ class ControllerWithoutMethods(web.BaseController):
 
 
 class ControllerWithGET(web.BaseController):
-    def GET(self):
+    @web.method('GET')
+    def get(self):
         return web.ResponseEntity(data=FAKE_DATA)
 
 
 class ControllerGeneratingPlainString(web.BaseController):
+    @web.method('GET')
     @web.content_type(PLAIN_TEXT_MIME)
-    def GET(self):
+    def get(self):
         return FAKE_DATA
 
 
 class ControllerWithPUTExpectingArgument(web.BaseController):
-    def PUT(self, argument):
+    @web.method('PUT')
+    def put(self, argument):
         return web.ResponseEntity(data=argument)

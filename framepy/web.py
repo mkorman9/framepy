@@ -3,6 +3,7 @@ import cherrypy
 from framepy import core
 from framepy import modules
 from framepy import _method_inspection
+import functools
 
 DEFAULT_ENCODING = 'utf-8'
 annotated_controllers = {}
@@ -160,6 +161,7 @@ class UnknownFieldType(Exception):
 
 def payload(payload_template):
     def payload_retriever(func):
+        @functools.wraps(func)
         def wrapped(instance, *args, **kwargs):
             try:
                 body = cherrypy.request.body.read().decode(DEFAULT_ENCODING)
@@ -178,11 +180,23 @@ def payload(payload_template):
 
 def content_type(mime):
     def value_retriever(func):
+        @functools.wraps(func)
         def wrapped(instance, *args, **kwargs):
             cherrypy.response.headers['Content-Type'] = mime
             return func(instance, *args, **kwargs)
         return wrapped
     return value_retriever
+
+
+def method(http_method):
+    def handler(func):
+        func._http_method = http_method
+
+        @functools.wraps(func)
+        def wrapped(instance, *args, **kwargs):
+            return func(instance, *args, **kwargs)
+        return wrapped
+    return handler
 
 
 def exception_handler():
@@ -223,7 +237,12 @@ class BaseController(core.BaseBean):
         cherrypy.response.headers['Content-Type'] = 'application/json'
 
     def _find_handling_method(self):
-        return getattr(self, cherrypy.request.method.upper(), None)
+        for member_name in dir(self):
+            member = getattr(self, member_name)
+            if hasattr(member, '_http_method'):
+                if member._http_method.upper() == cherrypy.request.method.upper():
+                    return member
+        return None
 
     def _dispatch_event(self, method, vpath, params):
         if not method:
