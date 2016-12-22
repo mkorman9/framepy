@@ -23,5 +23,9 @@ deploy:
   on:
     tags: true
 
+addons:
+  code_climate:
+    repo_token: ae118fd81fc349130263713e74be974b318b2b9f25785711ad0aa8f4fd061576
+
 notifications:
   email: false
