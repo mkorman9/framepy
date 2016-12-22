@@ -7,7 +7,7 @@ echo 'Installing test requirements...'
 pip install behave requests
 
 echo 'Running test application...'
-python app/app_starter.py &
+(cd app/; python app_starter.py &)
 
 echo 'Waiting for test application to wake up...'
 timeout_counter="0"
