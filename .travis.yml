@@ -16,6 +16,7 @@ install:
 
 script:
   - nosetests --with-coverage --cover-erase --cover-package=framepy
+  - ./smoke-tests/run.sh || exit 1
 
 after_script:
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then codeclimate-test-reporter --token ae118fd81fc349130263713e74be974b318b2b9f25785711ad0aa8f4fd061576; fi
