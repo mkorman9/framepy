@@ -8,14 +8,17 @@ env:
     - VERSION_BASE='2016.12'
 
 install:
+  - pip install codeclimate-test-reporter 2> /dev/null
   - export VERSION="${VERSION_BASE}.${TRAVIS_BUILD_NUMBER}"
   - if [ "$TRAVIS_TAG" != '' ]; then export VERSION="$TRAVIS_TAG"; fi
   - sed -i -e "s/dynamic-dev/${VERSION}/g" setup.py
   - pip install .
 
-script: nosetests
+script:
+  - nosetests --with-coverage --cover-erase --cover-package=framepy
 
 after_script:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then codeclimate-test-reporter --token ae118fd81fc349130263713e74be974b318b2b9f25785711ad0aa8f4fd061576; fi
   - if [ "$TRAVIS_BRANCH" == "release" ]; then git tag ${VERSION}; git push --tags -q https://mkorman9:${GITHUB_TOKEN}@github.com/mkorman9/framepy; fi
 
 deploy:
