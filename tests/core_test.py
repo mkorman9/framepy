@@ -12,7 +12,7 @@ class CoreTest(unittest.TestCase):
     def test_context_should_be_initialized(self):
         # given
         custom_module = mock.MagicMock(spec=modules.Module)
-        properties_items = {'server_host': 'localhost', 'server_port': 'port'}
+        properties_items = {'server_host': 'localhost', 'server_port': '8080'}
         properties_file_mock = self._create_properties_file_mock(properties_items)
         cherrypy_update_config_mock = self._create_mock_for_cherrypy_config_update()
         logging_mock = self._create_mock_of_logging_system()
