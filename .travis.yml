@@ -18,8 +18,8 @@ script:
   - nosetests --with-coverage --cover-erase --cover-package=framepy
 
 after_script:
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then codeclimate-test-reporter --token ae118fd81fc349130263713e74be974b318b2b9f25785711ad0aa8f4fd061576; fi
-  - if [ "$TRAVIS_BRANCH" == "release" ]; then git tag ${VERSION}; git push --tags -q https://mkorman9:${GITHUB_TOKEN}@github.com/mkorman9/framepy; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then codeclimate-test-reporter --token ae118fd81fc349130263713e74be974b318b2b9f25785711ad0aa8f4fd061576; fi
+  - if [ "$TRAVIS_BRANCH" == "release" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then git tag ${VERSION}; git push --tags -q https://mkorman9:${GITHUB_TOKEN}@github.com/mkorman9/framepy; fi
 
 deploy:
   provider: pypi
