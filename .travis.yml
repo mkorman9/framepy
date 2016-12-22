@@ -13,7 +13,9 @@ install:
   - sed -i -e "s/dynamic-dev/${VERSION}/g" setup.py
   - pip install .
 
-script: nosetests
+script:
+  - pip install codeclimate-test-reporter
+  - nosetests --with-coverage --cover-erase --cover-package=framepy
 
 after_script:
   - if [ "$TRAVIS_BRANCH" == "release" ]; then git tag ${VERSION}; git push --tags -q https://mkorman9:${GITHUB_TOKEN}@github.com/mkorman9/framepy; fi
