@@ -15,6 +15,7 @@ while [ "$(curl -s "http://127.0.0.1:8080/")" == '' ]; do
     echo "Trying http://127.0.0.1:8080/"
     if [[ $timeout_counter == "30" ]]; then
         echo "Wake up phase timed out!"
+        curl -v "http://127.0.0.1:8080/"
         exit 1
     fi
 
