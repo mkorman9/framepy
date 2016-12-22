@@ -1,6 +1,11 @@
 import framepy
 
 
+@framepy.controller('')
+class EmptyController(framepy.web.BaseController):
+    pass
+
+
 @framepy.controller('/data/sample')
 class SampleDataController(framepy.web.BaseController):
     @framepy.web.method('GET')
