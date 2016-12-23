@@ -114,15 +114,15 @@ class ConfigurationTest(unittest.TestCase):
         assert_that(updated_properties).is_equal_to(properties)
 
     def _fake_ok_response_from_service(self, properties_to_set):
-        resp = requests.Response()
-        resp.status_code = 200
-        resp.json = lambda: properties_to_set
-        return resp
+        response = requests.Response()
+        response.status_code = 200
+        response.json = lambda: properties_to_set
+        return response
 
     def _fake_error_response_from_service(self):
-        resp = requests.Response()
-        resp.status_code = 404
-        return resp
+        response = requests.Response()
+        response.status_code = 404
+        return response
 
     def _find_config_absolute_path(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config/config.ini')
