@@ -27,9 +27,9 @@ def step_impl(context, context_path):
     context.response = requests.post('{}{}'.format(APPLICATION_URL, context_path), json=context.request_payload)
 
 
-@then('Response status code should be equal to 200')
-def step_impl(context):
-    assert context.response.status_code == 200
+@then('Response status code should be equal to {expected_status_code}')
+def step_impl(context, expected_status_code):
+    assert context.response.status_code == int(expected_status_code)
 
 
 @then('Valid response should be generated with data equal to {expected_data}')

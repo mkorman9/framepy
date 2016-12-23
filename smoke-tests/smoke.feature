@@ -15,3 +15,14 @@ Feature: Controllers mapping
     When POST with payload is send to /post/echo
     Then Response status code should be equal to 200
     Then Valid response should be generated with JSON response equal to {"someVariable":"someValue","someVariable2":"someValue2"}
+
+  Scenario: Querying controller with invalid payload
+    Given POST payload equal to {"someVariable":"someValue"}
+    When POST with payload is send to /post/echo
+    Then Response status code should be equal to 400
+
+  Scenario: Querying logic
+    Given POST payload equal to {"value":10}
+    When POST with payload is send to /post/increment
+    Then Response status code should be equal to 200
+    Then Valid response should be generated with JSON response equal to {"value":11}
