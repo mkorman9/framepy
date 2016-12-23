@@ -1,5 +1,6 @@
 import unittest
 import requests
+import os
 
 from assertpy import assert_that
 from mock import mock
@@ -10,7 +11,7 @@ from framepy import _configuration
 class ConfigurationTest(unittest.TestCase):
     def test_loading_properties_from_file(self):
         # given
-        file_path = 'config/config.ini'
+        file_path = self._find_config_absolute_path()
 
         # when
         properties = _configuration._load_properties(file_path)
@@ -122,3 +123,6 @@ class ConfigurationTest(unittest.TestCase):
         resp = requests.Response()
         resp.status_code = 404
         return resp
+
+    def _find_config_absolute_path(self):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config/config.ini')
