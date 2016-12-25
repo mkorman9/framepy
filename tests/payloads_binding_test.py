@@ -1,4 +1,7 @@
 import unittest
+
+from mock import mock
+
 import framepy.web
 from assertpy import assert_that
 
@@ -194,3 +197,56 @@ class PayloadBindingTest(unittest.TestCase):
         assert_that(errors[0]['error']).is_equal_to('MIN')
         assert_that(errors[1]['field']).is_equal_to('name')
         assert_that(errors[1]['error']).is_equal_to('MIN_LENGTH')
+
+    @mock.patch('cherrypy.request.body')
+    def test_should_bind_parsed_payload_as_method_argument(self, request_body):
+        # given
+        input_payload = b'{"some_value":"abc"}'
+        request_body.read.return_value = input_payload
+        controller = StubController()
+
+        # when
+        controller.method()
+
+        # then
+        assert_that(controller.saved_payload.some_value).is_equal_to('abc')
+
+    @mock.patch('cherrypy.request.body')
+    def test_should_binding_invalid_payload_should_return_error_response(self, request_body):
+        # given
+        input_payload = b'{"invalid_value":10}'
+        request_body.read.return_value = input_payload
+        controller = StubController()
+
+        # when
+        response = controller.method()
+
+        # then
+        assert_that(response.status).is_equal_to('error')
+
+    @mock.patch('cherrypy.request.body')
+    def test_should_binding_payload_with_incorrect_json_syntax_should_return_error_response(self, request_body):
+        # given
+        input_payload = b'{"invalid_json'
+        request_body.read.return_value = input_payload
+        controller = StubController()
+
+        # when
+        response = controller.method()
+
+        # then
+        assert_that(response.status).is_equal_to('error')
+
+
+class StubPayload(object):
+    some_value = framepy.web.PayloadConstraint('some_value', required=True, type='string')
+
+
+class StubController(framepy.web.BaseController):
+    def __init__(self):
+        super().__init__()
+        self.saved_payload = None
+
+    @framepy.web.payload('payload', StubPayload)
+    def method(self, payload):
+        self.saved_payload = payload

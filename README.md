@@ -17,3 +17,4 @@ Simple Python 3 framework for web applications. It supports:
 
 ### Branching model
 All changes and pull requests should be raised against *master* branch. Merging to *release* is done through internal pull request. Changes made in *release* are automatically deployed to PyPI repository.
+In order to merge pull request, it cannot degrade total code coverage value under 90%
