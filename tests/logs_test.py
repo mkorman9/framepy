@@ -7,7 +7,8 @@ import cherrypy
 
 
 class LogsTest(unittest.TestCase):
-    def test_should_setup_custom_loggers(self):
+    @mock.patch('cherrypy.log')
+    def test_should_setup_custom_loggers(self, cherrypy_log):
         # given
         logger = mock.MagicMock()
 
@@ -16,5 +17,5 @@ class LogsTest(unittest.TestCase):
 
         # then
         logger.addHandler.assert_called_once()
-        assert_that(len(cherrypy.log.error_log.handlers)).is_equal_to(1)
-        assert_that(len(cherrypy.log.access_log.handlers)).is_equal_to(1)
+        cherrypy_log.error_log.addHandler.assert_called_once()
+        cherrypy_log.access_log.addHandler.assert_called_once()
