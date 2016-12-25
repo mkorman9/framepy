@@ -2,6 +2,9 @@ import threading
 import unittest
 
 from assertpy import assert_that
+from framepy import core
+
+from framepy import beans
 from mock import mock
 import pika
 import pika.exceptions
@@ -71,6 +74,25 @@ class AmqpTest(unittest.TestCase):
         assert_that(beans['amqp_engine'].credentials.username).is_equal_to('test')
         assert_that(beans['amqp_engine'].credentials.password).is_equal_to('test123')
 
+    @mock.patch('framepy.amqp.get_channel')
+    def test_should_initialize_listeners(self, get_channel):
+        # given
+        module = amqp.Module()
+        listener = core.Mapping(ListenerClass(), 'listener')
+        context = mock.MagicMock()
+        bean_initializer = beans.BeansInitializer()
+        channel = get_channel.return_value
+
+        # when
+        module.after_setup({}, {'listeners_mappings': [listener]}, context, bean_initializer)
+
+        # then
+        channel.queue_declare.assert_called_once()
+        channel.basic_qos.assert_called_once()
+        channel.basic_consume.assert_called_once()
+        channel.start_consuming.assert_called_once()
+
+
     @mock.patch('pika.BlockingConnection')
     def test_should_establish_connection_and_return_working_channel(self, blocking_connection):
         # given
@@ -108,3 +130,8 @@ class AmqpTest(unittest.TestCase):
     @staticmethod
     def _mock_wait_time():
         amqp.WAIT_TIME_AFTER_CONNECTION_FAILURE = 0
+
+
+class ListenerClass(amqp.BaseListener):
+    def on_message(self, channel, method, properties, body):
+        pass
