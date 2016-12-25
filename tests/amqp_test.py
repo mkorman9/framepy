@@ -92,7 +92,6 @@ class AmqpTest(unittest.TestCase):
         channel.basic_consume.assert_called_once()
         channel.start_consuming.assert_called_once()
 
-
     @mock.patch('pika.BlockingConnection')
     def test_should_establish_connection_and_return_working_channel(self, blocking_connection):
         # given
@@ -122,6 +121,26 @@ class AmqpTest(unittest.TestCase):
             amqp.get_channel(context)
 
         assert_that(blocking_connection.call_count).is_equal_to(3)
+
+    @mock.patch('framepy.amqp.get_channel')
+    def test_should_send_message(self, get_channel):
+        # given
+        channel = get_channel.return_value
+        context = mock.MagicMock()
+        routing_key = 'queue_name'
+        message = 'sample message'
+        durable = True
+        exchange = ''
+
+        # when
+        amqp.send_message(context, routing_key, message, durable=durable, exchange=exchange)
+
+        # then
+        channel.queue_declare.asset_called_once_with(queue=routing_key, durable=durable)
+        _, publish_kwargs = channel.basic_publish.call_args
+        assert_that(publish_kwargs['exchange']).is_equal_to(exchange)
+        assert_that(publish_kwargs['routing_key']).is_equal_to(routing_key)
+        assert_that(publish_kwargs['body']).is_equal_to(message)
 
     @staticmethod
     def _clear_thread_level_cache():
