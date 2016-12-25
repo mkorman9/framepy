@@ -12,11 +12,7 @@ class EurekaTest(unittest.TestCase):
     @mock.patch('framepy.eureka._get_session_from_cache')
     def test_eureka_should_be_initialized(self, get_session, thread_class):
         # given
-        properties = {
-            'app_name': 'sample_app',
-            'remote_config_url': 'http://localhost',
-            'public_hostname': 'localhost'
-        }
+        properties = self._prepare_fake_properties()
         module = eureka.Module()
         beans = {}
 
@@ -32,6 +28,42 @@ class EurekaTest(unittest.TestCase):
         assert_that('_eureka_url' in beans).is_true()
         assert_that(beans['_eureka_url']).is_equal_to('http://localhost/eureka')
         thread.start.assert_called_once_with()
+
+    @mock.patch('threading.Thread')
+    @mock.patch('framepy.eureka._get_session_from_cache')
+    @mock.patch('framepy.log.error')
+    def test_should_log_error_if_cannot_register_instance_due_to_service_error(self, error_log, get_session, thread_class):
+        # given
+        properties = self._prepare_fake_properties()
+        module = eureka.Module()
+        beans = {}
+
+        session = get_session.return_value
+        session.post.return_value = self._fake_not_ok_response()
+
+        # when
+        module.before_setup(properties, {}, beans)
+
+        # then
+        error_log.assert_called_once_with('[Eureka] Cannot register instance on server! Status code 404')
+
+    @mock.patch('threading.Thread')
+    @mock.patch('framepy.eureka._get_session_from_cache')
+    @mock.patch('framepy.log.error')
+    def test_should_log_error_if_cannot_register_instance_due_connection_error(self, error_log, get_session, thread_class):
+        # given
+        properties = self._prepare_fake_properties()
+        module = eureka.Module()
+        beans = {}
+
+        session = get_session.return_value
+        session.post.side_effect = requests.exceptions.ConnectionError()
+
+        # when
+        module.before_setup(properties, {}, beans)
+
+        # then
+        error_log.assert_called_once_with('[Eureka] Cannot connect to server!')
 
     @mock.patch('framepy.eureka._get_session_from_cache')
     def test_should_list_instances(self, get_session_from_cache):
@@ -61,6 +93,13 @@ class EurekaTest(unittest.TestCase):
         # when then
         with self.assertRaises(Exception):
             eureka.list_instances(context, service_name)
+
+    def _prepare_fake_properties(self):
+        return {
+            'app_name': 'sample_app',
+            'remote_config_url': 'http://localhost',
+            'public_hostname': 'localhost'
+        }
 
     def _fake_ok_response(self, content):
         response = requests.Response()
