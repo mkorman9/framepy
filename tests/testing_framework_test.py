@@ -20,4 +20,6 @@ class TestingFrameworkTest(unittest.TestCase):
 
 
 class LogicStub(object):
-    pass
+    def method(self):
+        with db.transaction(self.context):
+            pass
