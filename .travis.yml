@@ -5,7 +5,7 @@ python:
 
 env:
   global:
-    - VERSION_BASE="$(date +"%Y.%m")"
+    - VERSION_BASE="$(date +'%Y.%m')"
 
 install:
   - pip install codeclimate-test-reporter 2> /dev/null
