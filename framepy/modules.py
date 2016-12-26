@@ -1,9 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class Module(object):
-    __metaclass__ = ABCMeta
-
+class Module(metaclass=ABCMeta):
     @abstractmethod
     def before_setup(self, properties, arguments, beans):
         raise NotImplementedError()
