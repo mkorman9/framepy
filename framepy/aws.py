@@ -35,10 +35,6 @@ class Module(modules.Module):
     def after_setup(self, properties, arguments, context, beans_initializer):
         pass
 
-    @staticmethod
-    def _filter_missing_endpoint(endpoint_url):
-        return endpoint_url if len(endpoint_url) > 0 else None
-
 
 def get_credentials(context):
     return context.aws_credentials
