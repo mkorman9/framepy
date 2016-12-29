@@ -29,10 +29,13 @@ class BeansTest(unittest.TestCase):
 
         # then
         beans = beans_initializer.all_beans.values()
+        for v in beans:
+            print(v.a())
+
         assert_that(all(bean.initialized_with_context for bean in beans)).is_true()
-        assert_that(all(bean.__class__ == StubA or bean.initialized_a == 'StubA' for bean in beans)).is_true()
-        assert_that(all(bean.__class__ == StubB or bean.initialized_b == 'StubB' for bean in beans)).is_true()
-        assert_that(all(bean.__class__ == StubC or bean.initialized_c == 'StubC' for bean in beans)).is_true()
+        assert_that(all(bean.a().__class__.__name__ == 'StubA' for bean in beans)).is_true()
+        assert_that(all(bean.b().__class__.__name__ == 'StubB' for bean in beans)).is_true()
+        assert_that(all(bean.c().__class__.__name__ == 'StubC' for bean in beans)).is_true()
 
     def test_exception_should_be_thrown_when_bean_cannot_be_initialized(self):
         # given
@@ -50,14 +53,17 @@ class BaseBeanStub(framepy.BaseBean):
         super(BaseBeanStub, self).initialize(context)
         self.initialized_with_context = context
 
-    def set_a(self, bean):
-        self.initialized_a = bean.__class__.__name__
+    @framepy.autowired('a')
+    def a(self):
+        pass
 
-    def set_b(self, bean):
-        self.initialized_b = bean.__class__.__name__
+    @framepy.autowired('b')
+    def b(self):
+        pass
 
-    def set_c(self, bean):
-        self.initialized_c = bean.__class__.__name__
+    @framepy.autowired('c')
+    def c(self):
+        pass
 
 
 class StubA(BaseBeanStub):
