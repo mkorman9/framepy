@@ -9,6 +9,9 @@ class MethodInspector(object):
         if hasattr(method, '_payload_argument_name'):
             self._special_attribute_names.append(method._payload_argument_name)
 
+    def get_method_arguments_names(self):
+        return self._arguments_without_special_ones()
+
     def contains_args(self):
         return len(self._args) > 0
 
