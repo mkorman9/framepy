@@ -6,6 +6,6 @@ from framepy import beans
 from framepy import client
 from framepy.core import log, scan_packages, BaseBean
 from framepy.web import controller
-from framepy.beans import bean
+from framepy.beans import bean, autowired
 
-__all__ = ['beans', 'core', 'web', 'db', 'testing', 'client', 'log', 'controller', 'bean', 'scan_packages', 'BaseBean']
+__all__ = ['beans', 'core', 'web', 'db', 'testing', 'client', 'log', 'controller', 'bean', 'scan_packages', 'BaseBean', 'autowired']

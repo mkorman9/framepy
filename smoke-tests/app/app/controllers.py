@@ -46,10 +46,11 @@ class PayloadEchoController(framepy.web.BaseController):
 
 @framepy.controller('/post/increment')
 class PayloadLogicController(framepy.web.BaseController):
-    def set_logic(self, logic):
-        self.logic = logic
+    @framepy.autowired('logic')
+    def logic(self):
+        pass
 
     @framepy.web.payload('payload', PayloadTemplateWithValueToIncrement)
     @framepy.web.method('POST')
     def increment_value(self, payload):
-        return framepy.web.ResponseEntity(data=self.logic.increment_value(payload))
+        return framepy.web.ResponseEntity(data=self.logic().increment_value(payload))
