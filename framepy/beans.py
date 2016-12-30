@@ -64,16 +64,22 @@ class BeansResolver(object):
         self._initialized_beans = {}
 
     def resolve(self, context):
-        instantiated_class_beans = self._instantiate_bean_classes()
-        self._beans_initializer.initialize(context, instantiated_class_beans)
-
-        instantiated_configuration_beans, not_instantiated_beans_with_dependencies = \
-            self._instantiate_beans_within_configurations()
-        self._beans_initializer.initialize(context, instantiated_configuration_beans)
+        self._resolve_class_beans(context)
+        not_instantiated_beans_with_dependencies = self._resolve_not_parametrized_config_beans(context)
 
         instantiated_parametrized_configuration_beans = \
             self._instantiate_parametrized_beans_within_configurations(context, not_instantiated_beans_with_dependencies)
         self._beans_initializer.initialize(context, instantiated_parametrized_configuration_beans)
+
+    def _resolve_not_parametrized_config_beans(self, context):
+        instantiated_configuration_beans, not_instantiated_beans_with_dependencies = \
+            self._instantiate_beans_within_configurations()
+        self._beans_initializer.initialize(context, instantiated_configuration_beans)
+        return not_instantiated_beans_with_dependencies
+
+    def _resolve_class_beans(self, context):
+        instantiated_class_beans = self._instantiate_bean_classes()
+        self._beans_initializer.initialize(context, instantiated_class_beans)
 
     def _instantiate_bean_classes(self):
         instantiated_beans = {}

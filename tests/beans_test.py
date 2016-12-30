@@ -107,6 +107,36 @@ class BeansTest(unittest.TestCase):
         assert_that(context.bean).is_equal_to('sample bean')
         assert_that(context.bean2).is_equal_to('sample bean2')
 
+    def test_should_create_bean_from_parametrized_methods_chain(self):
+        # given
+        @beans.configuration
+        class TestConfiguration(object):
+            @staticmethod
+            @beans.create_bean('bean')
+            def bean():
+                return 'sample bean'
+
+            @staticmethod
+            @beans.create_bean('bean2')
+            def bean2(bean):
+                return bean + '2'
+
+            @staticmethod
+            @beans.create_bean('bean3')
+            def bean3(bean2):
+                return bean2 + '3'
+
+        resolver = beans.BeansResolver(framepy.beans.BeansInitializer(), beans.annotated_beans,
+                                       beans.annotated_configurations)
+        context = core.Context({})
+
+        # when
+        resolver.resolve(context)
+
+        # then
+        assert_that(context.bean).is_equal_to('sample bean')
+        assert_that(context.bean2).is_equal_to('sample bean2')
+        assert_that(context.bean2).is_equal_to('sample bean23')
 
 class BaseBeanStub(framepy.BaseBean):
     def initialize(self, context):
