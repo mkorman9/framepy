@@ -65,11 +65,11 @@ class BeansResolver(object):
 
     def resolve(self, context):
         self._resolve_class_beans(context)
-        not_instantiated_beans_with_dependencies = self._resolve_not_parametrized_config_beans(context)
+        self._instantiate_nested_beans(context, self._resolve_not_parametrized_config_beans(context))
 
-        instantiated_parametrized_configuration_beans = \
-            self._instantiate_parametrized_beans_within_configurations(context, not_instantiated_beans_with_dependencies)
-        self._beans_initializer.initialize(context, instantiated_parametrized_configuration_beans)
+    def _resolve_class_beans(self, context):
+        instantiated_class_beans = self._instantiate_bean_classes()
+        self._beans_initializer.initialize(context, instantiated_class_beans)
 
     def _resolve_not_parametrized_config_beans(self, context):
         instantiated_configuration_beans, not_instantiated_beans_with_dependencies = \
@@ -77,9 +77,22 @@ class BeansResolver(object):
         self._beans_initializer.initialize(context, instantiated_configuration_beans)
         return not_instantiated_beans_with_dependencies
 
-    def _resolve_class_beans(self, context):
-        instantiated_class_beans = self._instantiate_bean_classes()
-        self._beans_initializer.initialize(context, instantiated_class_beans)
+    def _instantiate_nested_beans(self, context, not_instantiated_beans_with_dependencies):
+        while True:
+            instantiated_parametrized_configuration_beans, not_instantiated_parametrized_configuration_beans = \
+                self._instantiate_parametrized_beans_within_configurations(context,
+                                                                           not_instantiated_beans_with_dependencies)
+            self._beans_initializer.initialize(context, instantiated_parametrized_configuration_beans)
+
+            if len(instantiated_parametrized_configuration_beans) == 0 and \
+               len(not_instantiated_parametrized_configuration_beans) != 0:
+                raise AutowiredException(
+                    'Cannot autowire beans: {}'.format(list(not_instantiated_parametrized_configuration_beans.keys()))
+                )
+            if len(not_instantiated_parametrized_configuration_beans) == 0:
+                break
+
+            not_instantiated_beans_with_dependencies = not_instantiated_parametrized_configuration_beans
 
     def _instantiate_bean_classes(self):
         instantiated_beans = {}
@@ -102,9 +115,10 @@ class BeansResolver(object):
                     self._save_bean_for_later(inspector, method_creating_bean, not_instantiated_beans)
         return instantiated_beans, not_instantiated_beans
 
-    def _instantiate_parametrized_beans_within_configurations(self, context, not_instantiated_beans_with_dependencies):
+    def _instantiate_parametrized_beans_within_configurations(self, context, not_instantiated_beans):
         instantiated_parametrized_configuration_beans = {}
-        for bean_name, (bean_method, dependencies) in not_instantiated_beans_with_dependencies.items():
+        not_instantiated_parametrized_configuration_beans = {}
+        for bean_name, (bean_method, dependencies) in not_instantiated_beans.items():
             resolved_dependencies = {}
 
             for dependency in dependencies:
@@ -114,8 +128,8 @@ class BeansResolver(object):
             if len(dependencies) == len(resolved_dependencies):
                 instantiated_parametrized_configuration_beans[bean_name] = bean_method(**resolved_dependencies)
             else:
-                raise AutowiredException('Cannot autowire dependencies for {}'.format(bean_name))
-        return instantiated_parametrized_configuration_beans
+                not_instantiated_parametrized_configuration_beans[bean_name] = bean_method, dependencies
+        return instantiated_parametrized_configuration_beans, not_instantiated_parametrized_configuration_beans
 
     def _instantiate_static_method(self, instantiated_beans, method_creating_bean):
         instantiated_beans[method_creating_bean._bean_key] = method_creating_bean()

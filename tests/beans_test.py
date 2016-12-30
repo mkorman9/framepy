@@ -136,7 +136,7 @@ class BeansTest(unittest.TestCase):
         # then
         assert_that(context.bean).is_equal_to('sample bean')
         assert_that(context.bean2).is_equal_to('sample bean2')
-        assert_that(context.bean2).is_equal_to('sample bean23')
+        assert_that(context.bean3).is_equal_to('sample bean23')
 
 class BaseBeanStub(framepy.BaseBean):
     def initialize(self, context):
