@@ -138,6 +138,23 @@ class BeansTest(unittest.TestCase):
         assert_that(context.bean2).is_equal_to('sample bean2')
         assert_that(context.bean3).is_equal_to('sample bean23')
 
+    def test_should_fail_when_trying_to_autowire_non_exising_bean(self):
+        # given
+        @beans.configuration
+        class TestConfiguration(object):
+            @staticmethod
+            @beans.create_bean('bean')
+            def bean(non_existing_bean):
+                return None
+
+        resolver = beans.BeansResolver(framepy.beans.BeansInitializer(), beans.annotated_beans,
+                                       beans.annotated_configurations)
+        context = core.Context({})
+
+        # when then
+        with self.assertRaises(beans.AutowiredException):
+            resolver.resolve(context)
+
 
 class BaseBeanStub(framepy.BaseBean):
     def initialize(self, context):
