@@ -67,8 +67,13 @@ class BeansResolver(object):
         instantiated_class_beans = self._instantiate_bean_classes()
         self._beans_initializer.initialize(context, instantiated_class_beans)
 
-        instantiated_configuration_beans = self._instantiate_beans_within_configurations()
+        instantiated_configuration_beans, not_instantiated_beans_with_dependencies = \
+            self._instantiate_beans_within_configurations()
         self._beans_initializer.initialize(context, instantiated_configuration_beans)
+
+        instantiated_parametrized_configuration_beans = \
+            self._instantiate_parametrized_beans_within_configurations(context, not_instantiated_beans_with_dependencies)
+        self._beans_initializer.initialize(context, instantiated_parametrized_configuration_beans)
 
     def _instantiate_bean_classes(self):
         instantiated_beans = {}
@@ -78,15 +83,40 @@ class BeansResolver(object):
 
     def _instantiate_beans_within_configurations(self):
         instantiated_beans = {}
+        not_instantiated_beans = {}
         for configuration_class in self._bean_configuration_classes:
             methods_creating_beans = [getattr(configuration_class, property) for property in dir(configuration_class)
                                       if callable(getattr(configuration_class, property)) and
                                       hasattr(getattr(configuration_class, property), '_bean_key')]
             for method_creating_bean in methods_creating_beans:
-                instantiated_beans[method_creating_bean._bean_key] = method_creating_bean()
-        return instantiated_beans
+                inspector = _method_inspection.MethodInspector(method_creating_bean)
+                if not inspector.contains_args():
+                    self._instantiate_static_method(instantiated_beans, method_creating_bean)
+                else:
+                    self._save_bean_for_later(inspector, method_creating_bean, not_instantiated_beans)
+        return instantiated_beans, not_instantiated_beans
 
+    def _instantiate_parametrized_beans_within_configurations(self, context, not_instantiated_beans_with_dependencies):
+        instantiated_parametrized_configuration_beans = {}
+        for bean_name, (bean_method, dependencies) in not_instantiated_beans_with_dependencies.items():
+            resolved_dependencies = {}
 
+            for dependency in dependencies:
+                if hasattr(context, dependency):
+                    resolved_dependencies[dependency] = getattr(context, dependency)
+
+            if len(dependencies) == len(resolved_dependencies):
+                instantiated_parametrized_configuration_beans[bean_name] = bean_method(**resolved_dependencies)
+            else:
+                raise AutowiredException('Cannot autowire dependencies for {}'.format(bean_name))
+        return instantiated_parametrized_configuration_beans
+
+    def _instantiate_static_method(self, instantiated_beans, method_creating_bean):
+        instantiated_beans[method_creating_bean._bean_key] = method_creating_bean()
+
+    def _save_bean_for_later(self, inspector, method_creating_bean, not_instantiated_beans):
+        not_instantiated_beans[method_creating_bean._bean_key] = \
+            method_creating_bean, inspector.get_arguments_without_special_ones()
 
 
 class BeanInitializationException(Exception):
