@@ -41,21 +41,34 @@ def create_bean(key):
     return create_bean_decorator
 
 
+class BeansInitializer(object):
+    def initialize(self, context, beans_list):
+        for bean_name, bean in beans_list.items():
+            try:
+                if hasattr(bean, 'initialize'):
+                    bean.initialize(context)
+            except Exception as e:
+                raise BeanInitializationException("Cannot initialize bean '{0}'".format(bean_name), e)
+
+            setattr(context, bean_name, bean)
+
+    def initialize_single_bean(self, bean_name, bean_object, context):
+        self.initialize(context, {bean_name: bean_object})
+
+
 class BeansResolver(object):
-    def __init__(self, bean_classes, bean_configuration_classes):
+    def __init__(self, beans_initializer, bean_classes, bean_configuration_classes):
+        self._beans_initializer = beans_initializer
         self._bean_classes = bean_classes
         self._bean_configuration_classes = bean_configuration_classes
         self._initialized_beans = {}
 
     def resolve(self, context):
         instantiated_class_beans = self._instantiate_bean_classes()
-        self._initialize_beans(context, instantiated_class_beans)
+        self._beans_initializer.initialize(context, instantiated_class_beans)
 
         instantiated_configuration_beans = self._instantiate_beans_within_configurations()
-        self._initialize_beans(context, instantiated_configuration_beans)
-
-    def initialize_single_bean(self, bean_name, bean_object, context):
-        self._initialize_beans(context, {bean_name: bean_object})
+        self._beans_initializer.initialize(context, instantiated_configuration_beans)
 
     def _instantiate_bean_classes(self):
         instantiated_beans = {}
@@ -73,15 +86,7 @@ class BeansResolver(object):
                 instantiated_beans[method_creating_bean._bean_key] = method_creating_bean()
         return instantiated_beans
 
-    def _initialize_beans(self, context, beans):
-        for bean_name, bean in beans.items():
-            try:
-                if hasattr(bean, 'initialize'):
-                    bean.initialize(context)
-            except Exception as e:
-                raise BeanInitializationException("Cannot initialize bean '{0}'".format(bean_name), e)
 
-            setattr(context, bean_name, bean)
 
 
 class BeanInitializationException(Exception):

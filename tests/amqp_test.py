@@ -80,11 +80,11 @@ class AmqpTest(unittest.TestCase):
         module = amqp.Module()
         listener = core.Mapping(ListenerClass(), 'listener')
         context = mock.MagicMock()
-        bean_resolver = beans.BeansResolver({}, {})
+        bean_initializer = beans.BeansInitializer()
         channel = get_channel.return_value
 
         # when
-        module.after_setup({}, {'listeners_mappings': [listener]}, context, bean_resolver)
+        module.after_setup({}, {'listeners_mappings': [listener]}, context, bean_initializer)
 
         # then
         channel.queue_declare.assert_called_once()

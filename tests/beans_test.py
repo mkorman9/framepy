@@ -18,7 +18,7 @@ class BeansTest(unittest.TestCase):
         context = core.Context({})
 
         # when
-        beans_resolver = beans.BeansResolver(self.annotated_beans, {})
+        beans_resolver = beans.BeansResolver(framepy.beans.BeansInitializer(), self.annotated_beans, {})
         beans_resolver.resolve(context)
 
         # then
@@ -31,7 +31,7 @@ class BeansTest(unittest.TestCase):
 
     def test_all_beans_should_be_injected_and_initialized(self):
         # given
-        beans_resolver = framepy.beans.BeansResolver(self.annotated_beans, {})
+        beans_resolver = framepy.beans.BeansResolver(framepy.beans.BeansInitializer(), self.annotated_beans, {})
         context = core.Context({})
 
         # when
@@ -47,7 +47,7 @@ class BeansTest(unittest.TestCase):
     def test_exception_should_be_thrown_when_bean_cannot_be_initialized(self):
         # given
         beans.annotated_beans = {'invalidBean': StubThrowingExceptionOnInitialize}
-        beans_initializer = beans.BeansResolver(beans.annotated_beans, beans.annotated_configurations)
+        beans_initializer = beans.BeansResolver(framepy.beans.BeansInitializer(), beans.annotated_beans, {})
         context = mock.MagicMock()
 
         # when then
@@ -72,7 +72,8 @@ class BeansTest(unittest.TestCase):
             def bean():
                 return 'sample bean'
 
-        resolver = beans.BeansResolver(beans.annotated_beans, beans.annotated_configurations)
+        resolver = beans.BeansResolver(framepy.beans.BeansInitializer(), beans.annotated_beans,
+                                       beans.annotated_configurations)
         context = core.Context({})
 
         # when

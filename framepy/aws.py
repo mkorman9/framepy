@@ -32,7 +32,7 @@ class Module(modules.Module):
             'endpoint_url': endpoint_url
         }
 
-    def after_setup(self, properties, arguments, context, beans_resolver):
+    def after_setup(self, properties, arguments, context, beans_initializer):
         pass
 
 

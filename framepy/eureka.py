@@ -36,7 +36,7 @@ class Module(modules.Module):
 
         beans['_eureka_url'] = remote_config_url
 
-    def after_setup(self, properties, arguments, context, beans_resolver):
+    def after_setup(self, properties, arguments, context, beans_initializer):
         pass
 
     @staticmethod

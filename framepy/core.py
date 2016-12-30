@@ -47,11 +47,12 @@ def _setup_modules(loaded_properties, modules, kwargs):
 
 
 def _after_setup(context, modules, kwargs, properties):
-    beans_resolver = beans.BeansResolver(beans.annotated_beans, beans.annotated_configurations)
+    beans_initializer = beans.BeansInitializer()
+    beans_resolver = beans.BeansResolver(beans_initializer, beans.annotated_beans, beans.annotated_configurations)
     beans_resolver.resolve(context)
 
     for module in modules:
-        module.after_setup(properties, kwargs, context, beans_resolver)
+        module.after_setup(properties, kwargs, context, beans_initializer)
 
 
 def _create_context(kwargs, loaded_properties, modules):
