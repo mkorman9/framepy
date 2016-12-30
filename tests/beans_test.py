@@ -1,37 +1,44 @@
 import unittest
 import mock
 
-import framepy.beans
+import framepy
+from framepy import beans
+from framepy import core
 from assertpy import assert_that
 
 
 class BeansTest(unittest.TestCase):
     def setUp(self):
-        framepy.beans.annotated_beans = {'a': StubA, 'b': StubB, 'c': StubC}
+        self.annotated_beans = {'a': StubA, 'b': StubB, 'c': StubC}
+        beans.annotated_beans = {}
+        beans.annotated_configurations = []
 
     def test_should_create_instances_of_existing_beans(self):
-        # given when
-        beans_initializer = framepy.beans.BeansInitializer()
+        # given
+        context = core.Context({})
+
+        # when
+        beans_resolver = beans.BeansResolver(self.annotated_beans, {})
+        beans_resolver.resolve(context)
 
         # then
-        initialized_classes = {bean.__class__.__name__ for bean in beans_initializer.all_beans.values()}
-        initialized_keys = set(beans_initializer.all_beans.keys())
+        all_beans_keys = [property for property in dir(context) if not property.startswith('_')]
+        all_beans = [getattr(context, property) for property in dir(context) if not property.startswith('_')]
+        initialized_classes = {bean.__class__.__name__ for bean in all_beans}
+        initialized_keys = set(all_beans_keys)
         assert_that(initialized_keys).is_equal_to({'a', 'b', 'c'})
         assert_that(initialized_classes).is_equal_to({'StubA', 'StubB', 'StubC'})
 
     def test_all_beans_should_be_injected_and_initialized(self):
         # given
-        beans_initializer = framepy.beans.BeansInitializer()
-        context = mock.MagicMock()
+        beans_resolver = framepy.beans.BeansResolver(self.annotated_beans, {})
+        context = core.Context({})
 
         # when
-        beans_initializer.initialize_all(context)
+        beans_resolver.resolve(context)
 
         # then
-        beans = beans_initializer.all_beans.values()
-        for v in beans:
-            print(v.a())
-
+        beans = [getattr(context, property) for property in dir(context) if not property.startswith('_')]
         assert_that(all(bean.initialized_with_context for bean in beans)).is_true()
         assert_that(all(bean.a().__class__.__name__ == 'StubA' for bean in beans)).is_true()
         assert_that(all(bean.b().__class__.__name__ == 'StubB' for bean in beans)).is_true()
@@ -39,13 +46,40 @@ class BeansTest(unittest.TestCase):
 
     def test_exception_should_be_thrown_when_bean_cannot_be_initialized(self):
         # given
-        framepy.beans.annotated_beans = {'invalidBean': StubThrowingExceptionOnInitialize}
-        beans_initializer = framepy.beans.BeansInitializer()
+        beans.annotated_beans = {'invalidBean': StubThrowingExceptionOnInitialize}
+        beans_initializer = beans.BeansResolver(beans.annotated_beans, beans.annotated_configurations)
         context = mock.MagicMock()
 
         # when then
-        with self.assertRaises(framepy.beans.BeanInitializationException):
-            beans_initializer.initialize_all(context)
+        with self.assertRaises(beans.BeanInitializationException):
+            beans_initializer.resolve(context)
+
+    def test_should_detect_configuration_class_and_add_it_to_list(self):
+        # given
+        @beans.configuration
+        class TestConfiguration(object):
+            pass
+
+        # when then
+        assert_that(beans.annotated_configurations).is_equal_to([TestConfiguration])
+
+    def test_should_create_bean_from_method(self):
+        # given
+        @beans.configuration
+        class TestConfiguration(object):
+            @staticmethod
+            @beans.create_bean('bean')
+            def bean():
+                return 'sample bean'
+
+        resolver = beans.BeansResolver(beans.annotated_beans, beans.annotated_configurations)
+        context = core.Context({})
+
+        # when
+        resolver.resolve(context)
+
+        # then
+        assert_that(context.bean).is_equal_to('sample bean')
 
 
 class BaseBeanStub(framepy.BaseBean):

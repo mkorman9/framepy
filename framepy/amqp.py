@@ -49,13 +49,13 @@ class Module(modules.Module):
         credentials = pika.PlainCredentials(broker_username, broker_password)
         beans['amqp_engine'] = pika.ConnectionParameters(broker_host, broker_port, '/', credentials)
 
-    def after_setup(self, properties, arguments, context, bean_initializer):
+    def after_setup(self, properties, arguments, context, beans_resolver):
         listeners_mappings = arguments.get('listeners_mappings', [])
         for key, bean in annotated_listeners.items():
             listeners_mappings.append(core.Mapping(bean(), key))
 
         for m in listeners_mappings:
-            bean_initializer.initialize_bean('__listener_' + m.path, m.bean, context)
+            beans_resolver.initialize_single_bean('__listener_' + m.path, m.bean, context)
             _register_listener(context, m.path, m.bean.on_message)
 
     def _map_listeners_from_arguments(self, arguments):

@@ -7,5 +7,5 @@ class Module(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def after_setup(self, properties, arguments, context, beans_initializer):
+    def after_setup(self, properties, arguments, context, beans_resolver):
         raise NotImplementedError()

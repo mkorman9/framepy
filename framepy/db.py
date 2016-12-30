@@ -20,7 +20,7 @@ class Module(modules.Module):
         beans['db_engine'] = sqlalchemy.create_engine(database_url)
         beans['_session_maker'] = sqlalchemy.orm.sessionmaker(bind=beans['db_engine'])
 
-    def after_setup(self, properties, arguments, context, beans_initializer):
+    def after_setup(self, properties, arguments, context, beans_resolver):
         pass
 
 

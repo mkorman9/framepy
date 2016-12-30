@@ -1,4 +1,7 @@
 import functools
+
+from framepy import _method_inspection
+
 from framepy import core
 
 annotated_beans = {}
@@ -38,47 +41,47 @@ def create_bean(key):
     return create_bean_decorator
 
 
-class BeansInitializer(object):
-    def __init__(self):
-        self.initial_mappings = []
-        for key, bean in annotated_beans.items():
-            self.initial_mappings.append(core.Mapping(bean(), key))
-        self.all_beans = {bean.path: bean.bean for bean in self.initial_mappings}
+class BeansResolver(object):
+    def __init__(self, bean_classes, bean_configuration_classes):
+        self._bean_classes = bean_classes
+        self._bean_configuration_classes = bean_configuration_classes
+        self._initialized_beans = {}
 
-    def update_beans(self, beans):
-        self.all_beans.update(beans)
+    def resolve(self, context):
+        instantiated_class_beans = self._instantiate_bean_classes()
+        self._initialize_beans(context, instantiated_class_beans)
 
-    def initialize_all(self, context):
-        for key, bean in self.all_beans.items():
-            self.initialize_bean(key, bean, context)
+        instantiated_configuration_beans = self._instantiate_beans_within_configurations()
+        self._initialize_beans(context, instantiated_configuration_beans)
 
-    def initialize_bean(self, target_bean_name, target_bean, context):
-        try:
-            if hasattr(target_bean, 'initialize'):
-                target_bean.initialize(context)
-        except Exception as e:
-            raise BeanInitializationException("Cannot initialize bean '{0}'".format(target_bean_name), e)
+    def initialize_single_bean(self, bean_name, bean_object, context):
+        self._initialize_beans(context, {bean_name: bean_object})
 
-        setattr(context, target_bean_name, target_bean)
+    def _instantiate_bean_classes(self):
+        instantiated_beans = {}
+        for bean_name, bean_class in self._bean_classes.items():
+            instantiated_beans[bean_name] = bean_class()
+        return instantiated_beans
 
+    def _instantiate_beans_within_configurations(self):
+        instantiated_beans = {}
+        for configuration_class in self._bean_configuration_classes:
+            methods_creating_beans = [getattr(configuration_class, property) for property in dir(configuration_class)
+                                      if callable(getattr(configuration_class, property)) and
+                                      hasattr(getattr(configuration_class, property), '_bean_key')]
+            for method_creating_bean in methods_creating_beans:
+                instantiated_beans[method_creating_bean._bean_key] = method_creating_bean()
+        return instantiated_beans
 
-class BeansConfigurationsResolver(object):
-    def __init__(self, beans_initializer):
-        self._beans_to_create = {}
-        self._beans_initializer = beans_initializer
+    def _initialize_beans(self, context, beans):
+        for bean_name, bean in beans.items():
+            try:
+                if hasattr(bean, 'initialize'):
+                    bean.initialize(context)
+            except Exception as e:
+                raise BeanInitializationException("Cannot initialize bean '{0}'".format(bean_name), e)
 
-    def resolve(self):
-        for configuration_class in annotated_configurations:
-            self._resolve_configuration_class(configuration_class)
-
-        self._beans_initializer.update_beans(self._beans_to_create)
-
-    def _resolve_configuration_class(self, configuration_class):
-        beans_in_class = [getattr(configuration_class, property) for property in dir(configuration_class)
-                          if callable(getattr(configuration_class, property)) and
-                          hasattr(getattr(configuration_class, property), '_bean_key')]
-        for bean in beans_in_class:
-            self._beans_to_create[bean._bean_key] = bean()
+            setattr(context, bean_name, bean)
 
 
 class BeanInitializationException(Exception):

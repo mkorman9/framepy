@@ -46,20 +46,17 @@ def _setup_modules(loaded_properties, modules, kwargs):
     return Context(beans)
 
 
-def _after_setup(context, modules, kwargs, properties, beans_initializer):
-    _initialize_beans(beans_initializer, context)
+def _after_setup(context, modules, kwargs, properties):
+    beans_resolver = beans.BeansResolver(beans.annotated_beans, beans.annotated_configurations)
+    beans_resolver.resolve(context)
+
     for module in modules:
-        module.after_setup(properties, kwargs, context, beans_initializer)
+        module.after_setup(properties, kwargs, context, beans_resolver)
 
 
-def _initialize_beans(beans_initializer, context):
-    beans.BeansConfigurationsResolver(beans_initializer).resolve()
-    beans_initializer.initialize_all(context)
-
-
-def _create_context(beans_initializer, kwargs, loaded_properties, modules):
+def _create_context(kwargs, loaded_properties, modules):
     context = _setup_modules(loaded_properties, modules, kwargs)
-    _after_setup(context, modules, kwargs, loaded_properties, beans_initializer)
+    _after_setup(context, modules, kwargs, loaded_properties)
 
 
 def _finish_system_initialization(loaded_properties):
@@ -76,13 +73,12 @@ def scan_packages(packages_filter=lambda _: True):
 def init_context(properties_file,
                  modules=(),
                  **kwargs):
-    beans_initializer = beans.BeansInitializer()
     modules = (web.Module(),) + modules
 
     properties = _configuration.create_configuration(properties_file)
 
     _finish_system_initialization(properties)
-    _create_context(beans_initializer, kwargs, properties, modules)
+    _create_context(kwargs, properties, modules)
 
     return cherrypy.tree
 
