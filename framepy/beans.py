@@ -63,13 +63,15 @@ class BeansInitializer(object):
 
 
 class BeansConfigurationsResolver(object):
-    def __init__(self):
+    def __init__(self, beans_initializer):
         self._beans_to_create = {}
+        self._beans_initializer = beans_initializer
+
+    def resolve(self):
         for configuration_class in annotated_configurations:
             self._resolve_configuration_class(configuration_class)
 
-    def get_beans(self):
-        return self._beans_to_create
+        self._beans_initializer.update_beans(self._beans_to_create)
 
     def _resolve_configuration_class(self, configuration_class):
         beans_in_class = [getattr(configuration_class, property) for property in dir(configuration_class)

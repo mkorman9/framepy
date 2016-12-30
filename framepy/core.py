@@ -53,8 +53,7 @@ def _after_setup(context, modules, kwargs, properties, beans_initializer):
 
 
 def _initialize_beans(beans_initializer, context):
-    configuration_resolver = beans.BeansConfigurationsResolver()
-    beans_initializer.update_beans(configuration_resolver.get_beans())
+    beans.BeansConfigurationsResolver(beans_initializer).resolve()
     beans_initializer.initialize_all(context)
 
 

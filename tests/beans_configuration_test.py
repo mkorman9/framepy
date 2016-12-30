@@ -29,12 +29,12 @@ class BeansConfigurationTest(unittest.TestCase):
             def bean():
                 return 'sample bean'
 
-        resolver = beans.BeansConfigurationsResolver()
         initializer = beans.BeansInitializer()
-        initializer.update_beans(resolver.get_beans())
+        resolver = beans.BeansConfigurationsResolver(initializer)
         context = mock.MagicMock()
 
         # when
+        resolver.resolve()
         initializer.initialize_all(context)
 
         # then
