@@ -6,15 +6,29 @@ class PayloadTemplate(object):
     someVariable2 = framepy.web.PayloadConstraint('someVariable2', required=True, type='string')
 
 
-class PayloadTemplateWithValueToIncrement(object):
+class PayloadTemplateWithValueToModify(object):
     value = framepy.web.PayloadConstraint('value', required=True, type='int')
 
 
-@framepy.bean('logic')
-class Logic(framepy.BaseBean):
+@framepy.bean('incrementing_logic')
+class IncrementingLogic(framepy.BaseBean):
     def increment_value(self, obj):
         obj.value += 1
         return obj
+
+
+class DecrementingLogic(framepy.BaseBean):
+    def decrement_value(self, obj):
+        obj.value -= 1
+        return obj
+
+
+@framepy.configuration
+class Configuration(object):
+    @staticmethod
+    @framepy.create_bean('decrementing_logic')
+    def decrementing_logic():
+        return DecrementingLogic()
 
 
 @framepy.controller('')
@@ -45,12 +59,24 @@ class PayloadEchoController(framepy.web.BaseController):
 
 
 @framepy.controller('/post/increment')
-class PayloadLogicController(framepy.web.BaseController):
-    @framepy.autowired('logic')
+class PayloadIncrementingLogicController(framepy.web.BaseController):
+    @framepy.autowired('incrementing_logic')
     def logic(self):
         pass
 
-    @framepy.web.payload('payload', PayloadTemplateWithValueToIncrement)
+    @framepy.web.payload('payload', PayloadTemplateWithValueToModify)
     @framepy.web.method('POST')
     def increment_value(self, payload):
         return framepy.web.ResponseEntity(data=self.logic().increment_value(payload))
+
+
+@framepy.controller('/post/decrement')
+class PayloadDecrementingLogicController(framepy.web.BaseController):
+    @framepy.autowired('decrementing_logic')
+    def logic(self):
+        pass
+
+    @framepy.web.payload('payload', PayloadTemplateWithValueToModify)
+    @framepy.web.method('POST')
+    def increment_value(self, payload):
+        return framepy.web.ResponseEntity(data=self.logic().decrement_value(payload))

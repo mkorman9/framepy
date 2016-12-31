@@ -27,7 +27,7 @@ class Module(modules.Module):
 
         beans['_redis_pool'] = redis.ConnectionPool(host=redis_host, port=int(redis_port), db=0, password=password)
 
-    def after_setup(self, properties, arguments, context, beans_initializer):
+    def after_setup(self, properties, arguments, context, beans_resolver):
         pass
 
 

@@ -5,10 +5,15 @@ import cherrypy
 from framepy import _configuration
 from framepy import core
 from framepy import logs
+from framepy import beans
 from framepy import modules
 
 
 class CoreTest(unittest.TestCase):
+    def setUp(self):
+        beans.annotated_beans = {}
+        beans.annotated_configurations = {}
+
     @mock.patch('framepy.logs.setup_logging')
     def test_context_should_be_initialized(self, setup_logging):
         # given
