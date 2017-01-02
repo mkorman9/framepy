@@ -1,3 +1,5 @@
+from assertpy import assert_that
+
 import framepy.client
 import unittest
 import mock
@@ -5,13 +7,27 @@ import requests
 
 
 class ClientTest(unittest.TestCase):
+    def setUp(self):
+        self.http_client = framepy.client.HttpTemplate()
+
+    def test_should_initialize_http_module(self):
+        # given
+        beans = {}
+        module = framepy.client.Module()
+
+        # when
+        module.before_setup({}, {}, beans)
+
+        # then
+        assert_that('http_template' in beans).is_true()
+
     def test_get_should_be_performed_for_single_host(self):
         # given
         requests.get = ClientTest.mock_http_method(200)
         hosts_list = ['127.0.0.1']
 
         # when
-        framepy.client.get('/', hosts_list)
+        self.http_client.get('/', hosts_list)
 
         # then
         requests.get.assert_called_once_with('http://127.0.0.1/')
@@ -22,7 +38,7 @@ class ClientTest(unittest.TestCase):
         hosts_list = ['127.0.0.1']
 
         # when
-        framepy.client.post('/', hosts_list)
+        self.http_client.post('/', hosts_list)
 
         # then
         requests.post.assert_called_once_with('http://127.0.0.1/')
@@ -33,7 +49,7 @@ class ClientTest(unittest.TestCase):
         hosts_list = ['127.0.0.1']
 
         # when
-        framepy.client.put('/', hosts_list)
+        self.http_client.put('/', hosts_list)
 
         # then
         requests.put.assert_called_once_with('http://127.0.0.1/')
@@ -44,7 +60,7 @@ class ClientTest(unittest.TestCase):
         hosts_list = ['127.0.0.1']
 
         # when
-        framepy.client.delete('/', hosts_list)
+        self.http_client.delete('/', hosts_list)
 
         # then
         requests.delete.assert_called_once_with('http://127.0.0.1/')
@@ -58,7 +74,7 @@ class ClientTest(unittest.TestCase):
         fallback = mock.MagicMock()
 
         # when
-        framepy.client.get('/', hosts_list, fallback=fallback)
+        self.http_client.get('/', hosts_list, fallback=fallback)
 
         # then
         requests.get.assert_called_once_with('http://127.0.0.1/')
@@ -72,7 +88,7 @@ class ClientTest(unittest.TestCase):
         fallback = mock.MagicMock()
 
         # when
-        framepy.client.get('/', hosts_list, fallback=fallback)
+        self.http_client.get('/', hosts_list, fallback=fallback)
 
         # then
         requests.get.assert_called_once_with('http://127.0.0.1/')
