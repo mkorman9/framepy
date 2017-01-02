@@ -8,7 +8,7 @@ from framepy import modules
 from framepy import _thread_level_cache
 from framepy import _utils
 
-SESSION_FIELD = 'session'
+SESSION_FIELD = 'eureka_http_session'
 
 
 class Module(modules.Module):

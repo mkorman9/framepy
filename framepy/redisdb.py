@@ -26,6 +26,7 @@ class Module(modules.Module):
         )
 
         beans['_redis_pool'] = redis.ConnectionPool(host=redis_host, port=int(redis_port), db=0, password=password)
+        beans['redis_template'] = RedisTemplate()
 
     def after_setup(self, properties, arguments, context, beans_resolver):
         pass
@@ -35,11 +36,12 @@ class ConnectionError(Exception):
     pass
 
 
-def get_connection(context):
-    connection = redis.Redis(connection_pool=context._redis_pool)
-    try:
-        connection.ping()
-    except redis.exceptions.ConnectionError:
-        framepy.log.error('[Redis] Connection pool returned invalid connection!')
-        raise ConnectionError('Cannot connect to Redis')
-    return connection
+class RedisTemplate(framepy.BaseBean):
+    def get_connection(self):
+        connection = redis.Redis(connection_pool=self.context._redis_pool)
+        try:
+            connection.ping()
+        except redis.exceptions.ConnectionError:
+            framepy.log.error('[Redis] Connection pool returned invalid connection!')
+            raise ConnectionError('Cannot connect to Redis')
+        return connection

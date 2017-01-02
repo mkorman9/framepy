@@ -11,7 +11,7 @@ from framepy import _utils
 WAIT_TIME_AFTER_CONNECTION_FAILURE = 2
 CONNECTION_RETRIES_COUNT = 3
 DEFAULT_AMQP_PORT = 5672
-CHANNEL_FIELD = 'channel'
+CHANNEL_FIELD = 'amqp_channel'
 
 annotated_listeners = {}
 

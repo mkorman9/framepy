@@ -17,8 +17,8 @@ class Module(modules.Module):
         )
 
         # typically mysql+pymysql://{username}:{password}@url
-        beans['db_engine'] = sqlalchemy.create_engine(database_url)
-        beans['_session_maker'] = sqlalchemy.orm.sessionmaker(bind=beans['db_engine'])
+        beans['_db_engine'] = sqlalchemy.create_engine(database_url)
+        beans['_session_maker'] = sqlalchemy.orm.sessionmaker(bind=beans['_db_engine'])
 
     def after_setup(self, properties, arguments, context, beans_initializer):
         pass
