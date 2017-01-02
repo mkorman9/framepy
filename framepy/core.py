@@ -3,6 +3,7 @@ from framepy import logs
 from framepy import beans
 from framepy import web
 from framepy import _configuration
+from framepy import client
 import logging
 import cherrypy
 import pkgutil
@@ -74,7 +75,7 @@ def scan_packages(packages_filter=lambda _: True):
 def init_context(properties_file,
                  modules=(),
                  **kwargs):
-    modules = (web.Module(),) + modules
+    modules = (web.Module(), client.Module()) + modules
 
     properties = _configuration.create_configuration(properties_file)
 

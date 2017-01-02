@@ -1,7 +1,7 @@
 import random
 import requests
-from . import core
-from . import modules
+from framepy import modules
+import cherrypy
 
 HTTP_SERVER_ERRORS_BORDER = 500
 PROTOCOL = 'http://'
@@ -15,7 +15,7 @@ class Module(modules.Module):
         pass
 
 
-class HttpTemplate(core.BaseBean):
+class HttpTemplate(object):
     def get(self, context_path, hosts_list, fallback=None, **kwargs):
         return self._perform_operation(context_path, requests.get, hosts_list, fallback, **kwargs)
 
@@ -43,7 +43,7 @@ class HttpTemplate(core.BaseBean):
                 if response.status_code < HTTP_SERVER_ERRORS_BORDER:
                     return response.json()
             except requests.exceptions.ConnectionError:
-                core.log.error('Invoking {0} on node {1} failed!'.format(context_path, host))
+                cherrypy.log.error('Invoking {0} on node {1} failed!'.format(context_path, host))
 
             hosts = [h for h in hosts if h != host]
 
