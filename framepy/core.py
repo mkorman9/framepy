@@ -40,11 +40,15 @@ def _setup_server_config(load_properties):
 
 
 def _setup_modules(loaded_properties, modules, kwargs):
-    beans = {}
+    system_beans = {}
     for module in modules:
-        module.before_setup(loaded_properties, kwargs, beans)
+        module.before_setup(loaded_properties, kwargs, system_beans)
 
-    return Context(beans)
+    context = Context(system_beans)
+    beans_initializer = beans.BeansInitializer()
+    beans_initializer.initialize(context, system_beans)
+
+    return context
 
 
 def _after_setup(context, modules, kwargs, properties):
