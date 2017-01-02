@@ -74,14 +74,17 @@ class AmqpTest(unittest.TestCase):
         assert_that(beans['amqp_engine'].credentials.username).is_equal_to('test')
         assert_that(beans['amqp_engine'].credentials.password).is_equal_to('test123')
 
-    @mock.patch('framepy.amqp.get_channel')
-    def test_should_initialize_listeners(self, get_channel):
+    def test_should_initialize_listeners(self):
         # given
         module = amqp.Module()
         listener = core.Mapping(ListenerClass(), 'listener')
         context = mock.MagicMock()
         bean_initializer = beans.BeansInitializer()
-        channel = get_channel.return_value
+
+        context.amqp_template = amqp.AmqpTemplate()
+        context.amqp_template.context = context
+        context.amqp_template.get_channel = mock.MagicMock()
+        channel = context.amqp_template.get_channel.return_value
 
         # when
         module.after_setup({}, {'listeners_mappings': [listener]}, context, bean_initializer)
@@ -100,8 +103,11 @@ class AmqpTest(unittest.TestCase):
         context = mock.MagicMock()
         expected_channel = blocking_connection.return_value.channel.return_value
 
+        amqp_template = amqp.AmqpTemplate()
+        amqp_template.context = context
+
         # when
-        channel = amqp.get_channel(context)
+        channel = amqp_template.get_channel()
 
         # then
         assert_that(channel).is_equal_to(expected_channel)
@@ -116,24 +122,31 @@ class AmqpTest(unittest.TestCase):
         context = mock.MagicMock()
         blocking_connection.side_effect = pika.exceptions.ConnectionClosed()
 
+        amqp_template = amqp.AmqpTemplate()
+        amqp_template.context = context
+
         # when then
         with self.assertRaises(amqp.ConnectionError):
-            amqp.get_channel(context)
+            amqp_template.get_channel()
 
         assert_that(blocking_connection.call_count).is_equal_to(3)
 
-    @mock.patch('framepy.amqp.get_channel')
-    def test_should_send_message(self, get_channel):
+    def test_should_send_message(self):
         # given
-        channel = get_channel.return_value
         context = mock.MagicMock()
+        amqp_template = amqp.AmqpTemplate()
+        amqp_template.context = context
+        amqp_template.get_channel = mock.MagicMock()
+
+        channel = amqp_template.get_channel.return_value
+
         routing_key = 'queue_name'
         message = 'sample message'
         durable = True
         exchange = ''
 
         # when
-        amqp.send_message(context, routing_key, message, durable=durable, exchange=exchange)
+        amqp_template.send_message(routing_key, message, durable=durable, exchange=exchange)
 
         # then
         channel.queue_declare.asset_called_once_with(queue=routing_key, durable=durable)

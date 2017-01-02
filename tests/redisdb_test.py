@@ -26,10 +26,13 @@ class RedisdbTest(unittest.TestCase):
         redis.Redis = mock.MagicMock()
         context = mock.MagicMock()
 
+        redis_template = redisdb.RedisTemplate()
+        redis_template.context = context
+
         redis.Redis.return_value = connection
 
         # when
-        returned_connection = redisdb.get_connection(context)
+        returned_connection = redis_template.get_connection()
 
         # then
         assert_that(returned_connection).is_equal_to(connection)

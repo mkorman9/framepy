@@ -22,10 +22,10 @@ class DBTest(unittest.TestCase):
         module.before_setup(properties, {}, beans)
 
         # then
-        assert_that('db_engine' in beans).is_true()
+        assert_that('_db_engine' in beans).is_true()
         assert_that('_session_maker' in beans).is_true()
         create_engine.assert_called_once_with(database_url)
-        sessionmaker.assert_called_once_with(bind=beans['db_engine'])
+        sessionmaker.assert_called_once_with(bind=beans['_db_engine'])
 
     def test_transaction_should_be_commited(self):
         # given

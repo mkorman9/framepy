@@ -34,7 +34,3 @@ class Module(modules.Module):
 
     def after_setup(self, properties, arguments, context, beans_initializer):
         pass
-
-
-def get_credentials(context):
-    return context.aws_credentials
