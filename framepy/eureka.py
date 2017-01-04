@@ -48,6 +48,12 @@ class Module(modules.Module):
 
 class EurekaTemplate(framepy.BaseBean):
     def list_instances(self, service_name):
+        """ Asks service discovery tool for addresses of service specified by service_name.
+        :type service_name: basestring
+        :param service_name: Name of service to ask for
+        :rtype: list[basestring]
+        :return: List of hosts containing specified service. Every host may contain port separated with : sign
+        """
         response = self._get_session_from_cache().get(
             self.context._eureka_url + '/apps/' + service_name, headers={'accept': 'application/json'}
         )

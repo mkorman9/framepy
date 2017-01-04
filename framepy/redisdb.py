@@ -38,6 +38,10 @@ class ConnectionError(Exception):
 
 class RedisTemplate(framepy.BaseBean):
     def get_connection(self):
+        """ Returns Redis connection from internal connections pool
+        :rtype: redis.Redis
+        :return: Redis connection
+        """
         connection = redis.Redis(connection_pool=self.context._redis_pool)
         try:
             connection.ping()

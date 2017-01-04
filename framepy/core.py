@@ -71,6 +71,9 @@ def _finish_system_initialization(loaded_properties):
 
 
 def scan_packages(packages_filter=lambda _: True):
+    """ Scans for annotated classes and methods in submodules.
+    Must be called before init_context if you want to use declarative config.
+    NOTE: Only scans for modules that are located in SUBPACKAGES, all modules from current package are skipped """
     for modname in (modname for importer, modname, ispkg in pkgutil.walk_packages('.')
                     if '.' in modname and packages_filter(modname)):
         __import__(modname)
@@ -79,6 +82,16 @@ def scan_packages(packages_filter=lambda _: True):
 def init_context(properties_file,
                  modules=(),
                  **kwargs):
+    """ Initializes all modules and beans. Returns application object for WSGI.
+    :type properties_file: basestring
+    :param properties_file: .ini file path to read properties from
+    :type modules: tuple[modules.Module]
+    :param modules: Module objects to initialize and append to context
+    :type kwargs: dict
+    :param kwargs: Additional parameters that are specified for passed modules
+    :rtype: cherrypy._cptree.Tree
+    :return: WSGI application
+    """
     modules = (web.Module(), client.Module()) + modules
 
     properties = _configuration.create_configuration(properties_file)
@@ -90,5 +103,8 @@ def init_context(properties_file,
 
 
 def start_standalone_application():
+    """ Starts standalone HTTP server and blocks current thread.
+    It's opposite method of running application to WSGI server,
+    however init_context MUST be called before this in any case """
     cherrypy.engine.start()
     cherrypy.engine.block()

@@ -81,6 +81,16 @@ class Module(modules.Module):
 
 class AmqpTemplate(framepy.BaseBean):
     def send_message(self, routing_key, message, durable=True, exchange=''):
+        """ Sends message to queue specified by routing_key and exchange
+        :type routing_key: basestring
+        :param routing_key: Name of queue
+        :type message: object
+        :param: Message to send
+        :type durable: bool
+        :param durable: Make message persistent or not
+        :type exchange: basestring
+        :param exchange: Exchange to send message to
+        """
         sending_channel = self.get_channel()
         sending_channel.queue_declare(queue=routing_key, durable=durable)
         sending_channel.basic_publish(exchange=exchange,
@@ -91,6 +101,9 @@ class AmqpTemplate(framepy.BaseBean):
                                       ))
 
     def get_channel(self):
+        """ Returns AMQP channel valid for current thread. Channels are cached in pool
+        :rtype: pika.adapters.blocking_connection.BlockingChannel
+        """
         return _thread_level_cache.fetch_from_cache_or_create_new(
             CHANNEL_FIELD,
             lambda: self._establish_connection().channel()

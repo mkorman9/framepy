@@ -17,15 +17,71 @@ class Module(modules.Module):
 
 class HttpTemplate(object):
     def get(self, context_path, hosts_list, fallback=None, **kwargs):
+        """ Send GET http message to one of hosts specified by hosts_list.
+        If communication fails (due to connection error or server error response) -
+        message is retransmitted to another host.
+        If communication to all hosts on lists failed - fallback function is called (if specified)
+        :type context_path: basestring
+        :param context_path: Path to HTTP resource (beginning with slash or not). For example /api/results
+        :type hosts_list: list[string]
+        :param hosts_list: List of hosts to ask for specified context path. May contain port after : sign
+        :type fallback: object
+        :param fallback: Fallback method to call if requests to all hosts failed. Result of this method is returned
+        :type kwargs: dict
+        :param kwargs: Arguments to pass to underlying requests library
+        :rtype: requests.Response
+        """
         return self._perform_operation(context_path, requests.get, hosts_list, fallback, **kwargs)
 
     def post(self, context_path, hosts_list, fallback=None, **kwargs):
+        """ Send POST http message to one of hosts specified by hosts_list.
+        If communication fails (due to connection error or server error response) -
+        message is retransmitted to another host.
+        If communication to all hosts on lists failed - fallback function is called (if specified)
+        :type context_path: basestring
+        :param context_path: Path to HTTP resource (beginning with slash or not). For example /api/results
+        :type hosts_list: list[string]
+        :param hosts_list: List of hosts to ask for specified context path. May contain port after : sign
+        :type fallback: object
+        :param fallback: Fallback method to call if requests to all hosts failed. Result of this method is returned
+        :type kwargs: dict
+        :param kwargs: Arguments to pass to underlying requests library
+        :rtype: requests.Response
+        """
         return self._perform_operation(context_path, requests.post, hosts_list, fallback, **kwargs)
 
     def put(self, context_path, hosts_list, fallback=None, **kwargs):
+        """ Send PUT http message to one of hosts specified by hosts_list.
+        If communication fails (due to connection error or server error response) -
+        message is retransmitted to another host.
+        If communication to all hosts on lists failed - fallback function is called (if specified)
+        :type context_path: basestring
+        :param context_path: Path to HTTP resource (beginning with slash or not). For example /api/results
+        :type hosts_list: list[string]
+        :param hosts_list: List of hosts to ask for specified context path. May contain port after : sign
+        :type fallback: object
+        :param fallback: Fallback method to call if requests to all hosts failed. Result of this method is returned
+        :type kwargs: dict
+        :param kwargs: Arguments to pass to underlying requests library
+        :rtype: requests.Response
+        """
         return self._perform_operation(context_path, requests.put, hosts_list, fallback, **kwargs)
 
     def delete(self, context_path, hosts_list, fallback=None, **kwargs):
+        """ Send DELETE http message to one of hosts specified by hosts_list.
+        If communication fails (due to connection error or server error response) -
+        message is retransmitted to another host.
+        If communication to all hosts on lists failed - fallback function is called (if specified)
+        :type context_path: basestring
+        :param context_path: Path to HTTP resource (beginning with slash or not). For example /api/results
+        :type hosts_list: list[string]
+        :param hosts_list: List of hosts to ask for specified context path. May contain port after : sign
+        :type fallback: object
+        :param fallback: Fallback method to call if requests to all hosts failed. Result of this method is returned
+        :type kwargs: dict
+        :param kwargs: Arguments to pass to underlying requests library
+        :rtype: requests.Response
+        """
         return self._perform_operation(context_path, requests.delete, hosts_list, fallback, **kwargs)
 
     @staticmethod

@@ -74,6 +74,9 @@ class PayloadBinder(object):
         self._bind_payload(payload)
 
     def has_errors(self):
+        """ Returns True if payload binding detected any errors
+        :rtype: bool
+        """
         return len(self.errors) > 0
 
     def _bind_payload(self, payload):
