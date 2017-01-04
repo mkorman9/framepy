@@ -85,6 +85,19 @@ class BaseControllerTest(unittest.TestCase):
         assert_that(response['status']).is_equal_to('ok')
         assert_that(response['data']).is_equal_to(argument)
 
+    def test_should_register_listener(self):
+        # given
+        web.annotated_controllers = {}
+
+        # when
+        @web.controller('/get/all')
+        class TestController(object):
+            pass
+
+        # then
+        assert_that('/get/all' in web.annotated_controllers).is_true()
+        assert_that(web.annotated_controllers['/get/all']).is_equal_to(TestController)
+
     @staticmethod
     def _parse_json_response(response):
         return json.loads(response.decode(web.DEFAULT_ENCODING))

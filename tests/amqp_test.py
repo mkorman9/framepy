@@ -155,6 +155,19 @@ class AmqpTest(unittest.TestCase):
         assert_that(publish_kwargs['routing_key']).is_equal_to(routing_key)
         assert_that(publish_kwargs['body']).is_equal_to(message)
 
+    def test_should_register_listener(self):
+        # given
+        amqp.annotated_listeners = {}
+
+        # when
+        @amqp.listener('queue_name')
+        class TestListener(object):
+            pass
+
+        # then
+        assert_that('queue_name' in amqp.annotated_listeners).is_true()
+        assert_that(amqp.annotated_listeners['queue_name']).is_equal_to(TestListener)
+
     @staticmethod
     def _clear_thread_level_cache():
         _thread_level_cache.cache = threading.local()
