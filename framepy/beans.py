@@ -104,16 +104,22 @@ class BeansResolver(object):
         instantiated_beans = {}
         not_instantiated_beans = {}
         for configuration_class in self._bean_configuration_classes:
-            methods_creating_beans = [getattr(configuration_class, property) for property in dir(configuration_class)
-                                      if callable(getattr(configuration_class, property)) and
-                                      hasattr(getattr(configuration_class, property), '_bean_key')]
-            for method_creating_bean in methods_creating_beans:
-                inspector = _method_inspection.MethodInspector(method_creating_bean)
-                if not inspector.contains_args():
-                    self._instantiate_static_method(instantiated_beans, method_creating_bean)
-                else:
-                    self._save_bean_for_later(inspector, method_creating_bean, not_instantiated_beans)
+            methods_creating_beans = self._find_methods_creating_beans(configuration_class)
+            self._instantiate_bean_or_save_for_later(instantiated_beans, methods_creating_beans, not_instantiated_beans)
         return instantiated_beans, not_instantiated_beans
+
+    def _instantiate_bean_or_save_for_later(self, instantiated_beans, methods_creating_beans, not_instantiated_beans):
+        for method_creating_bean in methods_creating_beans:
+            inspector = _method_inspection.MethodInspector(method_creating_bean)
+            if not inspector.contains_args():
+                self._instantiate_static_method(instantiated_beans, method_creating_bean)
+            else:
+                self._save_bean_for_later(inspector, method_creating_bean, not_instantiated_beans)
+
+    def _find_methods_creating_beans(self, configuration_class):
+        return [getattr(configuration_class, property) for property in dir(configuration_class)
+                if callable(getattr(configuration_class, property)) and
+                hasattr(getattr(configuration_class, property), '_bean_key')]
 
     def _instantiate_parametrized_beans_within_configurations(self, context, not_instantiated_beans):
         instantiated_parametrized_configuration_beans = {}
