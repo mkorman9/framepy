@@ -55,3 +55,78 @@ class DBTest(unittest.TestCase):
         # then
         session.rollback.assert_called_once()
         session.close.assert_called_once()
+
+    def test_data_access_exception(self):
+        # given
+        message = 'some message'
+
+        # when
+        exception = db.DataAccessException(message)
+
+        # then
+        assert_that(exception.message).is_equal_to(message)
+
+
+class GenericRepositoryTest(unittest.TestCase):
+    def setUp(self):
+        self.repository = db.GenericRepository()
+        self.repository.__basetable__ = mock.MagicMock()
+
+        self.transaction = mock.MagicMock()
+
+    def test_should_query_for_all_entities(self):
+        # given
+
+        # when
+        self.repository.all(self.transaction)
+
+        # then
+        query = self.transaction.query
+        query.assert_called_once_with(self.repository.__basetable__)
+        query.return_value.all.assert_called_once_with()
+
+    def test_should_query_for_filtered_entities(self):
+        # given
+        condition = mock.MagicMock()
+
+        # when
+        self.repository.find(self.transaction, condition)
+
+        # then
+        query = self.transaction.query
+        query.assert_called_once_with(self.repository.__basetable__)
+        query.return_value.filter.assert_called_once_with(condition)
+        query.return_value.filter.return_value.all.assert_called_once_with()
+
+    def test_should_query_for_single_entity(self):
+        # given
+        id = self.repository.__basetable__.id
+
+        # when
+        self.repository.one(self.transaction, id)
+
+        # then
+        query = self.transaction.query
+        query.assert_called_once_with(self.repository.__basetable__)
+        query.return_value.filter.assert_called_once_with(True)
+        query.return_value.filter.return_value.one.assert_called_once_with()
+
+    def test_should_add_single_entity(self):
+        # given
+        entity = mock.MagicMock()
+
+        # when
+        self.repository.add(self.transaction, entity)
+
+        # then
+        self.transaction.add.assert_called_once_with(entity)
+
+    def test_should_delete_single_entity(self):
+        # given
+        entity = mock.MagicMock()
+
+        # when
+        self.repository.delete(self.transaction, entity)
+
+        # then
+        self.transaction.delete.assert_called_once_with(entity)
