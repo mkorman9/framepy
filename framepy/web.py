@@ -80,19 +80,27 @@ class PayloadBinder(object):
         return len(self.errors) > 0
 
     def _bind_payload(self, payload):
-        constraints = [getattr(self._payload_template, constraint)
-                       for constraint in self._payload_template.__dict__
-                       if isinstance(getattr(self._payload_template, constraint), PayloadConstraint)]
+        constraints = self._find_all_constraints()
         fields = {}
         for constraint in constraints:
-            value = payload.get(constraint.name, None)
-            value_to_bind = self._process_nested_payload(value, constraint) if constraint.nested is not None \
-                else self._process_fields(value, constraint)
+            value_to_bind = self._process_as_single_value_or_nested_payload(
+                constraint,
+                payload.get(constraint.name, None)
+            )
 
             if value_to_bind is not None:
                 fields[constraint.name] = value_to_bind
 
         self.entity = PayloadEntity(fields)
+
+    def _process_as_single_value_or_nested_payload(self, constraint, value):
+        return self._process_nested_payload(value, constraint) if constraint.nested is not None \
+            else self._process_fields(value, constraint)
+
+    def _find_all_constraints(self):
+        return [getattr(self._payload_template, constraint)
+                for constraint in self._payload_template.__dict__
+                if isinstance(getattr(self._payload_template, constraint), PayloadConstraint)]
 
     def _process_nested_payload(self, value, constraint):
         if value is None and constraint.required:
@@ -114,11 +122,14 @@ class PayloadBinder(object):
         if value is None:
             return None
 
+        self._check_field_type(constraint, value)
+        return value
+
+    def _check_field_type(self, constraint, value):
         try:
             self._resolve_field(constraint, value)
         except ValueError:
             self.errors.append({'field': constraint.name, 'error': 'BAD_TYPE'})
-        return value
 
     def _resolve_field(self, constraint, value):
         type_resolver = self.types_resolvers.get(constraint.type)
